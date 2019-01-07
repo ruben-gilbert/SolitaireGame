@@ -18,6 +18,8 @@ namespace SolitaireGame
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         BackendGame g;
+        private MouseState curState;
+        private MouseState oldState;
         
         public MainGame()
         {
@@ -52,6 +54,8 @@ namespace SolitaireGame
             this.g.BuildBoard();
 
             this.IsMouseVisible = true;
+            this.curState = Mouse.GetState();
+            this.oldState = Mouse.GetState();
 
             base.Initialize();
         }
@@ -86,7 +90,15 @@ namespace SolitaireGame
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            // TODO: Add your update logic here
+            this.curState = Mouse.GetState();
+
+            if (this.curState.LeftButton == ButtonState.Pressed &&
+                this.oldState.LeftButton == ButtonState.Released)
+            {
+                g.MouseClicked(curState.X, curState.Y);
+            }
+
+            this.oldState = curState;
 
             base.Update(gameTime);
         }

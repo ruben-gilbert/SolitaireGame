@@ -40,6 +40,11 @@ namespace SolitaireGame
             return ref this.cards;
         }
 
+        public bool IsEmpty()
+        {
+            return this.cards.Count == 0;
+        }
+
         // Use simple Fisher-Yates shuffle
         public void Shuffle()
         {

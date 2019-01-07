@@ -142,7 +142,7 @@ namespace SolitaireGame
             // Draw the Deck
             if (cards.Count == 0)
             {
-                this.DrawBorder(s, tx, dkx, dkx + width, dky, dky + height);
+                DrawBorder(s, tx, dkx, dkx + width, dky, dky + height);
             }
             else
             {
@@ -157,7 +157,7 @@ namespace SolitaireGame
             // Draw the Discard pile
             if (this.discard.Count == 0)
             {
-                this.DrawBorder(s, tx, dix, dix + width, diy, diy + height);
+                DrawBorder(s, tx, dix, dix + width, diy, diy + height);
             }
             else
             {
@@ -187,7 +187,7 @@ namespace SolitaireGame
                 Console.WriteLine(i);
                 if (this.fd[i].Count == 0)
                 {
-                    this.DrawBorder(s, tx, fdx, fdx + width, dky, dky + height);
+                    DrawBorder(s, tx, fdx, fdx + width, dky, dky + height);
                 }
                 else
                 {
@@ -209,6 +209,43 @@ namespace SolitaireGame
             s.Draw(tx, new Rectangle(r, t, bw, Constants.CARD_HEIGHT), Color.Black);
             s.Draw(tx, new Rectangle(l, t, Constants.CARD_WIDTH, bw), Color.Black);
             s.Draw(tx, new Rectangle(l, b, Constants.CARD_WIDTH, bw), Color.Black);
+        }
+
+
+        // Mouse Handler for mouse click events
+        public void MouseClicked(int x, int y)
+        { 
+            // check for deck click
+            if (DeckClicked(x, y))
+            {
+                // TODO Handle empty deck
+                if (this.d.IsEmpty())
+                {
+
+                }
+                else
+                {
+                    List<Card> cs = this.d.Deal(1);
+                    foreach (Card c in cs)
+                        c.Flip();
+                    this.discard.AddRange(cs);
+                }
+
+            }
+        }
+
+        // check if the deck is clicked
+        public bool DeckClicked(int x, int y)
+        {
+            if (Constants.DECK_XCOR <= x && x <= Constants.DECK_XCOR + Constants.CARD_WIDTH)
+            {
+                if (y <= Constants.DECK_YCOR + Constants.CARD_HEIGHT && Constants.DECK_YCOR <= y)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
