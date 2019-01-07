@@ -65,18 +65,37 @@ namespace SolitaireGame
             this.back = g.Content.Load<Texture2D>("images/back_" + back_color);
         }
 
+
+        // Card Drawing
+        public void Draw(GraphicsDevice g, SpriteBatch s, int x, int y, Color c)
+        {
+            int width = Constants.CARD_WIDTH;
+            int height = Constants.CARD_HEIGHT;
+
+            Rectangle r = new Rectangle(x, y, width, height);
+
+            if (this.up)
+                s.Draw(this.front, r, c);
+            else
+                s.Draw(this.back, r, c);
+        }
+
+        // Card as a string
         public override string ToString()
         {
-            if (this.value == 1)
-                return "A" + this.suit;
-            else if (this.value == 11)
-                return "J" + this.suit;
-            else if (this.value == 12)
-                return "Q" + this.suit;
-            else if (this.value == 13)
-                return "K" + this.suit;
-            else
-                return this.value.ToString() + this.suit;
+            switch (this.value)
+            {
+                case 1:
+                    return "A" + this.suit;
+                case 11:
+                    return "J" + this.suit;
+                case 12:
+                    return "Q" + this.suit;
+                case 13:
+                    return "K" + this.suit;
+                default:
+                    return this.value + this.suit;
+            }
         }
     }
 }

@@ -1,4 +1,9 @@
-﻿using System;
+﻿// MainGame.cs
+// Adapted from Monogame default
+// Author: Ruben Gilbert
+// 2019
+
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;

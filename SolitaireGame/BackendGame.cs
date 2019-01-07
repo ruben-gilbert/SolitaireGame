@@ -1,4 +1,4 @@
-﻿// Game.cs
+﻿// BackendGame.cs
 // Author: Ruben Gilbert
 // 2019
 
@@ -16,10 +16,10 @@ namespace SolitaireGame
     {
 
         // Instance Variables
-        Deck d;
-        List<Card> discard;
-        List<Stack<Card>> piles;
-        List<List<Card>> board;
+        private Deck d;
+        private List<Card> discard;
+        private List<Stack<Card>> fd;
+        private List<List<Card>> board;
 
         // Constructor
         public BackendGame()
@@ -31,14 +31,11 @@ namespace SolitaireGame
             // discard pile starts empty
             this.discard = new List<Card>();
 
-            // 4 piles for each suit -- start as empty stacks
-            // using stacks since we only really care about the top 
-            // element at any given time AND remembering previous cards
-            // will allow for an undo method
-            this.piles = new List<Stack<Card>>();
+            // 4 Foundations -- start as empty stacks
+            this.fd = new List<Stack<Card>>();
             for (int i = 0; i < 4; i++)
             {
-                this.piles.Add(new Stack<Card>());
+                this.fd.Add(new Stack<Card>());
             }
 
             // init board, will be built later
@@ -61,6 +58,10 @@ namespace SolitaireGame
             return this.board;
         }
 
+
+        // Fills the board with Card objects by
+        // dealing Cards from the Deck.  Flips
+        // the last Card in each column face up
         public void BuildBoard()
         {
 
@@ -77,6 +78,7 @@ namespace SolitaireGame
             }
 
         }
+
 
         // Prints the board in a nice format to the console (text-based)
         public void PrintBoard()
@@ -111,86 +113,95 @@ namespace SolitaireGame
         }
 
 
+        // Method for drawing the board (gets called from
+        // MainGame.Draw() on every frame)
         public void DrawBoard(GraphicsDevice g, SpriteBatch s)
         {
+
+            // local variables for shortness
             int width = Constants.CARD_WIDTH;
             int height = Constants.CARD_HEIGHT;
-            int deck_xcor = 10;
-            int deck_ycor = 10;
-            int deck_offset = 0;
+            int dkx = Constants.DECK_XCOR;
+            int dky = Constants.DECK_YCOR;
+            int dix = Constants.DISCARD_XCOR;
+            int diy = Constants.DISCARD_YCOR;
+            int dko = 0; // how much to offset each Card in the Deck
 
-            List<Card> cards = this.GetDeck().GetCards();
+            int col_space = Constants.WINDOW_WIDTH / 7;
+            int row_start = Constants.WINDOW_HEIGHT / 3;
+            int hspace = col_space - width;
+            int vspace = 20;
+            int buf = -(hspace / 2);
 
-            //Console.WriteLine(cards.Count.ToString());
+            List<Card> cards = this.d.GetCards();
 
+            // Empty border texture (for drawing the empty squares)
+            Texture2D tx = new Texture2D(g, 1, 1);
+            tx.SetData(new[] { Color.White });
 
-            // Draw Deck
-            foreach (Card c in cards)
+            // Draw the Deck
+            if (cards.Count == 0)
             {
-                s.Draw(c.Back,
-                    new Rectangle(deck_xcor + deck_offset, 
-                        deck_ycor + deck_offset, 
-                        width, 
-                        height),
-                    Color.White);
-                deck_offset++;
+                this.DrawBorder(s, tx, dkx, dkx + width, dky, dky + height);
+            }
+            else
+            {
+                foreach (Card c1 in cards)
+                {
+                    c1.Draw(g, s, dkx + dko, dky + dko, Color.White);
+                    dko++; // draw the next Card 1 pixel down and right
+                }
             }
 
 
-            // Draw playing area of board
-            int col_space = Constants.WINDOW_WIDTH / 7;
-            int hspace = col_space - width;
-            int y_loc = Constants.WINDOW_HEIGHT / 3;
-            int row_offset = 20;
+            // Draw the Discard pile
+            if (this.discard.Count == 0)
+            {
+                this.DrawBorder(s, tx, dix, dix + width, diy, diy + height);
+            }
+            else
+            {
+                Card c2 = this.discard[this.discard.Count - 1];
+                c2.Draw(g, s, dix, diy, Color.White);
+            }
 
+            // Draw Tableus (7 columns)
             for (int col = 0; col < this.board.Count; col++)
             {
                 for (int row = 0; row < this.board[col].Count; row++)
                 {
-                    Card current = this.board[col][row];
-                    Texture2D t = current.Up ? t = current.Front : t = current.Back;
-                    
-                    s.Draw(t,
-                            new Rectangle(-(hspace / 2) + (hspace * (col + 1)) + (width * col), 
-                                y_loc + (row_offset * row), 
-                                width, 
-                                height),
-                            Color.White);
+                    int col_x = buf + (hspace * (col + 1)) + (width * col);
+                    int col_y = row_start + (vspace * row);
+
+                    Card c3 = this.board[col][row];
+                    c3.Draw(g, s, col_x, col_y, Color.White);
                 }
             }
 
-            // Draw scoring piles
-            Texture2D tx = new Texture2D(g, 1, 1);
-            tx.SetData(new[] { Color.White });
+            // Draw Foundations (scoring piles)
+            int fd_col = 4; // starting column
 
-            int p0x = -(hspace / 2) + (hspace * 4) + (width * 3);
-            int p1x = -(hspace / 2) + (hspace * 5) + (width * 4);
-            int p2x = -(hspace / 2) + (hspace * 6) + (width * 5);
-            int p3x = -(hspace / 2) + (hspace * 7) + (width * 6);
+            for (int i = 0; i < this.fd.Count; i++)
+            {
+                int fdx = buf + (hspace * fd_col) + (width * (fd_col - 1));
+                Console.WriteLine(i);
+                if (this.fd[i].Count == 0)
+                {
+                    this.DrawBorder(s, tx, fdx, fdx + width, dky, dky + height);
+                }
+                else
+                {
+                    Card c4 = this.fd[i].Peek();
+                    c4.Draw(g, s, fdx, dky, Color.White);
+                }
 
-            if (this.piles[0].Count == 0)
-                this.DrawBorder(s, tx, p0x, p0x + width, deck_ycor, deck_ycor + height);
-            else
-                s.Draw(this.piles[0].Peek().Front, new Rectangle(p0x, deck_ycor, width, height), Color.White);
-
-            if (this.piles[1].Count == 0)
-                this.DrawBorder(s, tx, p1x, p1x + width, deck_ycor, deck_ycor + height);
-            else
-                s.Draw(this.piles[1].Peek().Front, new Rectangle(p1x, deck_ycor, width, height), Color.White);
-
-            if (this.piles[2].Count == 0)
-                this.DrawBorder(s, tx, p2x, p2x + width, deck_ycor, deck_ycor + height);
-            else
-                s.Draw(this.piles[2].Peek().Front, new Rectangle(p2x, deck_ycor, width, height), Color.White);
-
-            if (this.piles[3].Count == 0)
-                this.DrawBorder(s, tx, p3x, p3x + width, deck_ycor, deck_ycor + height);
-            else
-                s.Draw(this.piles[3].Peek().Front, new Rectangle(p3x, deck_ycor, width, height), Color.White);
-
-
+                fd_col++;
+            }              
         }
 
+
+        // Method for drawing a black border as a place holder
+        // for where Cards should go (for empty piles)
         public void DrawBorder(SpriteBatch s, Texture2D tx, int l, int r, int t, int b)
         {
             int bw = 2; // border width

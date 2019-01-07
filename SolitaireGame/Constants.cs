@@ -18,5 +18,11 @@ namespace SolitaireGame
 
         public readonly static int CARD_WIDTH = 131;
         public readonly static int CARD_HEIGHT = 200;
+
+        public readonly static int DECK_XCOR = 10;
+        public readonly static int DECK_YCOR = 10;
+
+        public readonly static int DISCARD_XCOR = DECK_XCOR + CARD_WIDTH + 30;
+        public readonly static int DISCARD_YCOR = DECK_YCOR;
     }
 }
