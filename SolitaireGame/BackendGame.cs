@@ -96,13 +96,9 @@ namespace SolitaireGame
                     {
                         Card c = this.board[col][row];
                         if (!c.Up)
-                        {
                             current[col] = "*";
-                        }
                         else
-                        {
                             current[col] = c.ToString();
-                        }
                     }
                     else
                     {

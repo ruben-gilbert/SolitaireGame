@@ -25,22 +25,14 @@ namespace SolitaireGame
             up = false;
 
             if (!Constants.VALID_SUITS.Contains(suit))
-            {
                 throw new ArgumentException(String.Format("{0} is not a valid suit", "suit"));
-            }
             else
-            {
                 this.suit = suit;
-            }
 
             if (value < 1 || value > 13)
-            {
                 throw new ArgumentException(String.Format("{0} is not a valid card value", "value"));
-            }
             else
-            {
                 this.value = value;
-            }
         }
 
         // *******************************
@@ -76,25 +68,15 @@ namespace SolitaireGame
         public override string ToString()
         {
             if (this.value == 1)
-            {
                 return "A" + this.suit;
-            }
             else if (this.value == 11)
-            {
                 return "J" + this.suit;
-            }
             else if (this.value == 12)
-            {
                 return "Q" + this.suit;
-            }
             else if (this.value == 13)
-            {
                 return "K" + this.suit;
-            }
             else
-            {
                 return this.value.ToString() + this.suit;
-            }
         }
     }
 }
