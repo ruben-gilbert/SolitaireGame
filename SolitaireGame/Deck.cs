@@ -45,6 +45,16 @@ namespace SolitaireGame
             return this.cards.Count == 0;
         }
 
+        public void AddCard(Card c)
+        {
+            this.cards.Add(c);
+        }
+
+        public int Size()
+        {
+            return this.cards.Count;
+        }
+
         // Use simple Fisher-Yates shuffle
         public void Shuffle()
         {

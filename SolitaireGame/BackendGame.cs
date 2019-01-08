@@ -184,7 +184,7 @@ namespace SolitaireGame
             for (int i = 0; i < this.fd.Count; i++)
             {
                 int fdx = buf + (hspace * fd_col) + (width * (fd_col - 1));
-                Console.WriteLine(i);
+                
                 if (this.fd[i].Count == 0)
                 {
                     DrawBorder(s, tx, fdx, fdx + width, dky, dky + height);
@@ -218,17 +218,23 @@ namespace SolitaireGame
             // check for deck click
             if (DeckClicked(x, y))
             {
-                // TODO Handle empty deck
+                // if the deck space is clicked with no cards,
+                // reset the deck and empty discard pile
                 if (this.d.IsEmpty())
                 {
-
+                    foreach (Card dcard in this.discard)
+                    {
+                        dcard.Flip();
+                        this.d.AddCard(dcard);
+                    }
+                    this.discard.Clear();
                 }
                 else
                 {
-                    List<Card> cs = this.d.Deal(1);
-                    foreach (Card c in cs)
+                    List<Card> drawn = this.d.Deal(1);
+                    foreach (Card c in drawn)
                         c.Flip();
-                    this.discard.AddRange(cs);
+                    this.discard.AddRange(drawn);
                 }
 
             }
