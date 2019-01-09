@@ -49,6 +49,7 @@
     <Compile Include="MainGame.cs" />
     <Compile Include="Solitaire.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Selection.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="MonoGame.Framework">

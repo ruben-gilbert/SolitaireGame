@@ -20,6 +20,7 @@ namespace SolitaireGame
         private List<Card> discard;
         private List<Stack<Card>> fd;
         private List<List<Card>> board;
+        private Selection sel;
 
         // Constructor
         public BackendGame()
@@ -40,14 +41,18 @@ namespace SolitaireGame
 
             // init board, will be built later
             this.board = new List<List<Card>>();
+
+            // init Selection object
+            this.sel = new Selection();
             
 
         }
 
-        // *******************************
-        // Methods
-        // *******************************
-
+        /*
+         * *******************************
+         * Methods
+         * *******************************
+         */
         public Deck GetDeck()
         {
             return this.d;
@@ -59,9 +64,11 @@ namespace SolitaireGame
         }
 
 
-        // Fills the board with Card objects by
-        // dealing Cards from the Deck.  Flips
-        // the last Card in each column face up
+        /* 
+         * Fills the board with Card objects by
+         * dealing Cards from the Deck.  Flips
+         * the last Card in each column face up
+         */
         public void BuildBoard()
         {
 
@@ -107,14 +114,17 @@ namespace SolitaireGame
                         current[col] = " ";
                     }
                 }
-                Console.WriteLine(string.Format("{0,-3} {1,-3} {2,-3} {3,-3} {4,-3} {5,-3} {6,-3}", current));
+                Console.WriteLine(string.Format("{0,-3} {1,-3} {2,-3} " +
+                	    "{3,-3} {4,-3} {5,-3} {6,-3}", current));
                 Array.Clear(current, 0, current.Length);
             }
         }
 
 
-        // Method for drawing the board (gets called from
-        // MainGame.Draw() on every frame)
+        /*
+         * Method for drawing the board (gets called from
+         * MainGame.Draw() on every frame)
+         */        
         public void DrawBoard(GraphicsDevice g, SpriteBatch s)
         {
 
@@ -128,9 +138,9 @@ namespace SolitaireGame
             int dko = 0; // how much to offset each Card in the Deck
 
             int col_space = Constants.WINDOW_WIDTH / 7;
-            int row_start = Constants.WINDOW_HEIGHT / 3;
+            int row_start = Constants.ROW_START;
             int hspace = col_space - width;
-            int vspace = 20;
+            int vspace = Constants.VSPACE;
             int buf = -(hspace / 2);
 
             List<Card> cards = this.d.GetCards();
@@ -142,7 +152,8 @@ namespace SolitaireGame
             // Draw the Deck
             if (cards.Count == 0)
             {
-                DrawBorder(s, tx, dkx, dkx + width, dky, dky + height);
+                DrawBorder(s, tx, Color.Black, dkx, dkx + width, dky, dky +
+                    height, width, height);
             }
             else
             {
@@ -157,7 +168,8 @@ namespace SolitaireGame
             // Draw the Discard pile
             if (this.discard.Count == 0)
             {
-                DrawBorder(s, tx, dix, dix + width, diy, diy + height);
+                DrawBorder(s, tx, Color.Black, dix, dix + width, diy, diy + 
+                    height, width, height);
             }
             else
             {
@@ -187,7 +199,8 @@ namespace SolitaireGame
                 
                 if (this.fd[i].Count == 0)
                 {
-                    DrawBorder(s, tx, fdx, fdx + width, dky, dky + height);
+                    DrawBorder(s, tx, Color.Black, fdx, fdx + width, dky, dky + 
+                        height, width, height);
                 }
                 else
                 {
@@ -196,28 +209,44 @@ namespace SolitaireGame
                 }
 
                 fd_col++;
-            }              
+            }
+
+            // Draw border for currently selected Card(s)
+            if (this.sel.IsValid())
+            {
+                // TODO if the selection is valid, draw a border around it
+            }
+
         }
 
 
-        // Method for drawing a black border as a place holder
-        // for where Cards should go (for empty piles)
-        public void DrawBorder(SpriteBatch s, Texture2D tx, int l, int r, int t, int b)
+        /* 
+         * Method for drawing a border either:
+         * 1) for a placeholder for where Cards could go
+         * 2) around current selected Cards
+         */        
+        public void DrawBorder(SpriteBatch s, Texture2D tx, Color c, int l, 
+            int r, int t, int b, int w, int h)
         {
             int bw = 2; // border width
-            s.Draw(tx, new Rectangle(l, t, bw, Constants.CARD_HEIGHT), Color.Black);
-            s.Draw(tx, new Rectangle(r, t, bw, Constants.CARD_HEIGHT), Color.Black);
-            s.Draw(tx, new Rectangle(l, t, Constants.CARD_WIDTH, bw), Color.Black);
-            s.Draw(tx, new Rectangle(l, b, Constants.CARD_WIDTH, bw), Color.Black);
+            s.Draw(tx, new Rectangle(l, t, bw, h), c);
+            s.Draw(tx, new Rectangle(r, t, bw, h), c);
+            s.Draw(tx, new Rectangle(l, t, w, bw), c);
+            s.Draw(tx, new Rectangle(l, b, w, bw), c);
         }
 
 
-        // Mouse Handler for mouse click events
+        /*
+         * Mouse Handler for mouse click events
+         */        
         public void MouseClicked(int x, int y)
-        { 
+        {
             // check for deck click
             if (DeckClicked(x, y))
             {
+                // clear the current selection
+                this.sel.Clear();
+
                 // if the deck space is clicked with no cards,
                 // reset the deck and empty discard pile
                 if (this.d.IsEmpty())
@@ -231,27 +260,114 @@ namespace SolitaireGame
                 }
                 else
                 {
+                    // hardcoded one for now, but allows extension to other #'s
                     List<Card> drawn = this.d.Deal(1);
+
                     foreach (Card c in drawn)
                         c.Flip();
+
                     this.discard.AddRange(drawn);
                 }
 
             }
+            // check for discard pile click
+            else if (DiscardClicked(x, y))
+            {
+                // clear the current selection
+                this.sel.Clear();
+
+                // disregard clicks when the pile is empty
+                if (this.discard.Count != 0)
+                {
+                    // TODO make the top discard Card the active selection
+                }
+            }
+            // if not deck or discard, check foundation or tableu
+            else
+            {
+                // if top part of screen clicked, check for foundations
+                if (y > Constants.ROW_START)
+                {
+                    //  -1: invalid clicked
+                    // 0-3: number of foundation, left-to-right
+                    int fd_clicked = CheckFoundations(x, y);
+                    if (fd_clicked != -1)
+                    {
+                        // TODO if a selection is made, check if the selection
+                        // can go in the foundation
+                        // If no selection is made, don't do anything for now
+                    }
+                }
+                // otherwise, check for columns
+                else
+                {
+                    //  -1: invalid click
+                    // 0-6: number of column left-to-right
+                    int tab_clicked = CheckColumns(x, y);
+
+                    if (tab_clicked != -1)
+                    {
+                        // TODO the column space was clicked, figure out
+                        // which card was clicked (and if valid)
+                    }
+                }
+            }
         }
 
-        // check if the deck is clicked
+        /*
+         * Check if the deck is clicked
+         */        
         public bool DeckClicked(int x, int y)
         {
-            if (Constants.DECK_XCOR <= x && x <= Constants.DECK_XCOR + Constants.CARD_WIDTH)
+            if (Constants.DECK_XCOR <= x && x <= Constants.DECK_XCOR + 
+                Constants.CARD_WIDTH)
             {
-                if (y <= Constants.DECK_YCOR + Constants.CARD_HEIGHT && Constants.DECK_YCOR <= y)
+                if (y <= Constants.DECK_YCOR + Constants.CARD_HEIGHT && 
+                    Constants.DECK_YCOR <= y)
                 {
                     return true;
                 }
             }
 
             return false;
+        }
+
+        /* 
+         * Check if the discard pile is clicked
+         */
+         public bool DiscardClicked(int x, int y)
+        {
+            if (Constants.DISCARD_XCOR <= x && x <= Constants.DISCARD_XCOR + 
+                Constants.CARD_WIDTH)
+            {
+                if (y <= Constants.DECK_YCOR + Constants.CARD_HEIGHT && 
+                    Constants.DECK_YCOR <= y)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /* 
+         * Check if a column was clicked -- only gets called if a click was
+         * in the bottom section of the screen        
+         */
+         public int CheckColumns(int x, int y)
+        {
+            // TODO figure out if column was clicked
+            return -1;
+        }
+
+        /*
+         * Check if a foundation was clicked -- only gets called if a click
+         * was in the top section of the screen
+         */
+         public int CheckFoundations(int x, int y)
+        {
+            // TODO figure out if foundation was clicked
+            return -1;
         }
     }
 }
