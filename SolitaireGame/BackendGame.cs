@@ -44,7 +44,6 @@ namespace SolitaireGame
 
             // init Selection object
             this.sel = new Selection();
-            
 
         }
 
@@ -215,6 +214,9 @@ namespace SolitaireGame
             if (this.sel.IsValid())
             {
                 // TODO if the selection is valid, draw a border around it
+                DrawBorder(s, tx, Color.Red, this.sel.X, this.sel.X + 
+                    this.sel.W, this.sel.Y, this.sel.Y + this.sel.H, this.sel.W,
+                    this.sel.H);
             }
 
         }
@@ -225,7 +227,7 @@ namespace SolitaireGame
          * 1) for a placeholder for where Cards could go
          * 2) around current selected Cards
          */        
-        public void DrawBorder(SpriteBatch s, Texture2D tx, Color c, int l, 
+        private void DrawBorder(SpriteBatch s, Texture2D tx, Color c, int l, 
             int r, int t, int b, int w, int h)
         {
             int bw = 2; // border width
@@ -258,6 +260,7 @@ namespace SolitaireGame
                     }
                     this.discard.Clear();
                 }
+                // the deck still has cards
                 else
                 {
                     // hardcoded one for now, but allows extension to other #'s
@@ -276,17 +279,23 @@ namespace SolitaireGame
                 // clear the current selection
                 this.sel.Clear();
 
-                // disregard clicks when the pile is empty
+                // If there are cards in discard pile,
+                // make the top card the selection
                 if (this.discard.Count != 0)
                 {
-                    // TODO make the top discard Card the active selection
+                    List<Card> cur_sel = this.discard.GetRange(this.discard.Count - 1, 1);
+                    this.sel.Change(cur_sel);
+                    this.sel.X = Constants.DISCARD_XCOR;
+                    this.sel.Y = Constants.DISCARD_YCOR;
+                    this.sel.H = Constants.CARD_HEIGHT;
                 }
             }
             // if not deck or discard, check foundation or tableu
             else
             {
-                // if top part of screen clicked, check for foundations
-                if (y > Constants.ROW_START)
+                // if the top part of the screen is clicked, and there is a 
+                // selection currently active, check for click on foundations
+                if (y > Constants.ROW_START && this.sel.IsValid())
                 {
                     //  -1: invalid clicked
                     // 0-3: number of foundation, left-to-right
@@ -296,6 +305,10 @@ namespace SolitaireGame
                         // TODO if a selection is made, check if the selection
                         // can go in the foundation
                         // If no selection is made, don't do anything for now
+                    }
+                    else
+                    {
+                        this.sel.Clear();
                     }
                 }
                 // otherwise, check for columns
@@ -309,6 +322,10 @@ namespace SolitaireGame
                     {
                         // TODO the column space was clicked, figure out
                         // which card was clicked (and if valid)
+                    }
+                    else
+                    {
+                        this.sel.Clear();
                     }
                 }
             }

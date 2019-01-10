@@ -14,6 +14,8 @@ namespace SolitaireGame
         private bool valid;
         private int x;
         private int y;
+        private int w;
+        private int h;
 
         public Selection()
         {
@@ -21,6 +23,8 @@ namespace SolitaireGame
             this.valid = false;
             this.x = 0;
             this.y = 0;
+            this.w = Constants.CARD_WIDTH;
+            this.h = 0;
         }
 
         public int X
@@ -35,9 +39,26 @@ namespace SolitaireGame
             get { return this.y; }
         }
 
+        public int W
+        { 
+            get { return this.w; }
+        }
+
+        public int H
+        {
+            set { this.h = value; }
+            get { return this.h; }
+        }
+
         public bool IsValid()
         {
             return this.valid;
+        }
+
+        public void Change(List<Card> c)
+        {
+            this.cards = c;
+            this.valid = true;
         }
 
         public void Clear()
