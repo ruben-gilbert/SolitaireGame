@@ -20,6 +20,9 @@ namespace SolitaireGame
         private List<List<Card>> board;
         private Selection sel;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:SolitaireGame.BackendGame"/> class.
+        /// </summary>
         public BackendGame()
         {
             // Create Deck and shuffle it
@@ -44,11 +47,19 @@ namespace SolitaireGame
 
         }
 
+        /// <summary>
+        /// Gets the Deck object associated with this Game
+        /// </summary>
+        /// <returns>The Deck</returns>
         public Deck GetDeck()
         {
             return this.d;
         }
 
+        /// <summary>
+        /// Gets the board associated with this Game
+        /// </summary>
+        /// <returns>The board (a List of Lists of Cards)</returns>
         public List<List<Card>> GetBoard()
         {
             return this.board;
@@ -292,7 +303,7 @@ namespace SolitaireGame
                 {
                     //  -1: invalid clicked
                     // 0-3: number of foundation, left-to-right
-                    int fd_clicked = CheckFoundations(x, y);
+                    int fd_clicked = CheckFoundationClick(x, y);
 
                     if (fd_clicked != -1)
                     {
@@ -309,11 +320,15 @@ namespace SolitaireGame
                 {
                     //  -1: invalid click
                     // 0-6: number of column left-to-right
-                    int tab_clicked = CheckColumns(x, y);
+                    int tab_clicked = CheckColumnClick(x, y);
 
                     if (tab_clicked != -1)
                     {
                         // TODO the column space was clicked, figure out which card was clicked (and if valid)
+
+                        // TODO If there is already a valid selection, see if it applies to this column
+
+                        // TODO Otherwise, select the column if a flipped Card was clicked
                     }
                     else
                     {
@@ -367,14 +382,14 @@ namespace SolitaireGame
         }
 
         // TODO think of the best way to do this
-        public int CheckColumns(int x, int y)
+        public int CheckColumnClick(int x, int y)
         {
             // TODO figure out if column was clicked
             return -1;
         }
 
         // TODO think of the best way to do this
-        public int CheckFoundations(int x, int y)
+        public int CheckFoundationClick(int x, int y)
         {
             // TODO figure out if foundation was clicked
             return -1;

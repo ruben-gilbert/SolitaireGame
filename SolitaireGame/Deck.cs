@@ -11,6 +11,9 @@ namespace SolitaireGame
     {
         private List<Card> cards;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:SolitaireGame.Deck"/> class.
+        /// </summary>
         public Deck()
         {
             this.cards = new List<Card>();
@@ -24,26 +27,47 @@ namespace SolitaireGame
             }
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:SolitaireGame.Deck"/> class.  Uses a 
+        /// specific set of cards, instead of generating from scratch.
+        /// </summary>
+        /// <param name="c">Some List of Cards</param>
         public Deck(List<Card> c)
         {
             this.cards = c;
         }
 
+        /// <summary>
+        /// Gets the List of Card objects this Deck holds.
+        /// </summary>
+        /// <returns>A List of Cards</returns>
         public List<Card> GetCards()
         {
             return this.cards;
         }
 
+        /// <summary>
+        /// Checks to see if this Deck is empty
+        /// </summary>
+        /// <returns><c>true</c>, if the Deck is empty, <c>false</c> otherwise.</returns>
         public bool IsEmpty()
         {
             return this.cards.Count == 0;
         }
 
+        /// <summary>
+        /// Adds a Card to this Deck.
+        /// </summary>
+        /// <param name="c">Some Card object.</param>
         public void AddCard(Card c)
         {
             this.cards.Add(c);
         }
 
+        /// <summary>
+        /// Gets the size of this Deck (i.e. the number of Cards in it).
+        /// </summary>
+        /// <returns>The number of Cards in this Deck.</returns>
         public int Size()
         {
             return this.cards.Count;

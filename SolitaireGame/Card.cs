@@ -8,16 +8,21 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 namespace SolitaireGame
-{
+{ 
     public class Card
     {
         private string suit;
-        private int value;
+        private int val;
         private bool up;
         private Texture2D front;
         private Texture2D back;
 
-        public Card(int value, string suit)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:SolitaireGame.Card"/> class.
+        /// </summary>
+        /// <param name="value">The Card's value.</param>
+        /// <param name="suit">The Card's suit.</param>
+        public Card(int val, string suit)
         {
             up = false;
 
@@ -26,27 +31,51 @@ namespace SolitaireGame
             else
                 this.suit = suit;
 
-            if (value < 1 || value > 13)
-                throw new ArgumentException(String.Format("{0} is not a valid card value", "value"));
+            if (val < 1 || val > 13)
+                throw new ArgumentException(String.Format("{0} is not a valid card val", "val"));
             else
-                this.value = value;
+                this.val = val;
         }
 
+        /// <summary>
+        /// Gets the value of this Card.
+        /// </summary>
+        /// <value>NULL</value>
+        public int Val
+        {
+            get { return this.val; }
+        }
+
+        /// <summary>
+        /// Gets the Texture of the front of this Card.
+        /// </summary>
+        /// <value>The front Texture</value>
         public Texture2D Front
         {
             get { return this.front; }
         }
 
+        /// <summary>
+        /// Gets the Texture of the back of this Card.
+        /// </summary>
+        /// <value>The back Texture.</value>
         public Texture2D Back
         {
             get { return this.back; }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether this <see cref="T:SolitaireGame.Card"/> is up.
+        /// </summary>
+        /// <value><c>true</c> if up; otherwise, <c>false</c>.</value>
         public bool Up
         {
             get { return this.up; }
         }
 
+        /// <summary>
+        /// Flip this Card.
+        /// </summary>
         public void Flip()
         {
             this.up = !this.up;
@@ -89,7 +118,7 @@ namespace SolitaireGame
         /// <returns>A string of the Card's value and suit</returns>
         public override string ToString()
         {
-            switch (this.value)
+            switch (this.val)
             {
                 case 1:
                     return "A" + this.suit;
@@ -100,7 +129,7 @@ namespace SolitaireGame
                 case 13:
                     return "K" + this.suit;
                 default:
-                    return this.value + this.suit;
+                    return this.val + this.suit;
             }
         }
     }
