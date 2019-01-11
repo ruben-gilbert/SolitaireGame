@@ -25,7 +25,7 @@ namespace SolitaireGame
         public readonly static int DISCARD_XCOR = DECK_XCOR + CARD_WIDTH + 30;
         public readonly static int DISCARD_YCOR = DECK_YCOR;
 
-        public readonly static int ROW_START = WINDOW_HEIGHT / 3;
-        public readonly static int VSPACE = 20; // space between cards in tableu
+        public readonly static int TABLE_START = WINDOW_HEIGHT / 3;
+        public readonly static int TABLE_CARD_SEPARATION = 20;
     }
 }

@@ -17,7 +17,7 @@ namespace SolitaireGame
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-        BackendGame g;
+        BackendGame backendGame;
         private MouseState curState;
         private MouseState oldState;
         
@@ -32,26 +32,12 @@ namespace SolitaireGame
         }
 
         /// <summary>
-        /// Allows the game to perform any initialization it needs to before starting to run.
-        /// This is where it can query for any required services and load any non-graphic
-        /// related content.  Calling base.Initialize will enumerate through any components
-        /// and initialize them as well.
+        /// Initializes the backend game object, turn the mouse on, and 
+        /// initializes the mouse state vars
         /// </summary>
         protected override void Initialize()
         {
-
-            // sets up a newly shuffled deck with cards in
-            // a board (2D list) 
-            this.g = new BackendGame();
-            this.g.PrintBoard();
-
-            // load the image textures for each Card
-            foreach (Card c in this.g.GetDeck().GetCards())
-            {
-                c.LoadImages(this, "red"); 
-            }
-
-            this.g.BuildBoard();
+            this.backendGame = new BackendGame();
 
             this.IsMouseVisible = true;
             this.curState = Mouse.GetState();
@@ -61,14 +47,21 @@ namespace SolitaireGame
         }
 
         /// <summary>
-        /// LoadContent will be called once per game and is the place to load
-        /// all of your content.
+        /// Loads the Card textures and finishes building the board
         /// </summary>
         protected override void LoadContent()
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
+            // Load the image textures for each Card
+            foreach (Card c in this.backendGame.GetDeck().GetCards())
+            {
+                c.LoadImages(this, "purple");
+            }
+
+            // Build the board now that textures have been loaded
+            this.backendGame.BuildBoard();
         }
 
         /// <summary>
@@ -77,7 +70,7 @@ namespace SolitaireGame
         /// </summary>
         protected override void UnloadContent()
         {
-            // TODO: Unload any non ContentManager content here
+            // No content to unload
         }
 
         /// <summary>
@@ -87,15 +80,23 @@ namespace SolitaireGame
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == 
+                ButtonState.Pressed ||
+                Keyboard.GetState().IsKeyDown(Keys.Escape))
+            {
                 Exit();
+            }
 
+            // Get the current state of the mouse.  If it's currently pressed
+            // and it used to be released, it must be a "click" we should
+            // attempt to handle
             this.curState = Mouse.GetState();
 
             if (this.curState.LeftButton == ButtonState.Pressed &&
                 this.oldState.LeftButton == ButtonState.Released)
             {
-                g.MouseClicked(curState.X, curState.Y);
+                // The backend game handles if the click is valid
+                this.backendGame.MouseClicked(curState.X, curState.Y);
             }
 
             this.oldState = curState;
@@ -111,12 +112,8 @@ namespace SolitaireGame
         {
             GraphicsDevice.Clear(Color.ForestGreen);
 
-            // TODO: Add your drawing code here
             spriteBatch.Begin();
-            //Console.WriteLine(this.g.GetDeck().GetCards()[0]);     
-
-            this.g.DrawBoard(GraphicsDevice, this.spriteBatch);
-
+            this.backendGame.DrawGame(GraphicsDevice, this.spriteBatch);
             spriteBatch.End();
 
             base.Draw(gameTime);

@@ -11,17 +11,14 @@ namespace SolitaireGame
 {
     public class Card
     {
-        // Instance Variables
         private string suit;
         private int value;
         private bool up;
         private Texture2D front;
         private Texture2D back;
 
-        // Constructor
         public Card(int value, string suit)
         {
-
             up = false;
 
             if (!Constants.VALID_SUITS.Contains(suit))
@@ -34,10 +31,6 @@ namespace SolitaireGame
             else
                 this.value = value;
         }
-
-        // *******************************
-        // Methods
-        // *******************************
 
         public Texture2D Front
         {
@@ -59,20 +52,30 @@ namespace SolitaireGame
             this.up = !this.up;
         }
 
-        public void LoadImages(MainGame g, string back_color)
+        /// <summary>
+        /// Loads the images for this card.  The front image depends on the 
+        /// value and suit of the Card (files are named the same as the string
+        /// representation).  There are multiple possible card-back colors, so
+        /// we allow for that customization.
+        /// </summary>
+        /// <param name="game">The MainGame object this Card is attached to</param>
+        /// <param name="color">The color of the card-back</param>
+        public void LoadImages(MainGame game, string color)
         {
-            this.front = g.Content.Load<Texture2D>("images/" + this.ToString());
-            this.back = g.Content.Load<Texture2D>("images/back_" + back_color);
+            this.front = game.Content.Load<Texture2D>("images/" + this.ToString());
+            this.back = game.Content.Load<Texture2D>("images/back_" + color);
         }
 
-
-        // Card Drawing
-        public void Draw(GraphicsDevice g, SpriteBatch s, int x, int y, Color c)
-        {
-            int width = Constants.CARD_WIDTH;
-            int height = Constants.CARD_HEIGHT;
-
-            Rectangle r = new Rectangle(x, y, width, height);
+        /// <summary>
+        /// Card objects draw themselves
+        /// </summary>
+        /// <param name="s">SpriteBatch can draw 2D textures</param>
+        /// <param name="x">X-coordinate of this Card</param>
+        /// <param name="y">Y-coordinate of this Card</param>
+        /// <param name="c">Color of the texture (will generally be White)</param>
+        public void Draw(SpriteBatch s, int x, int y, Color c)
+        {                                                                                           
+            Rectangle r = new Rectangle(x, y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT);
 
             if (this.up)
                 s.Draw(this.front, r, c);
@@ -80,7 +83,10 @@ namespace SolitaireGame
                 s.Draw(this.back, r, c);
         }
 
-        // Card as a string
+        /// <summary>
+        /// Representation of a Card as a string
+        /// </summary>
+        /// <returns>A string of the Card's value and suit</returns>
         public override string ToString()
         {
             switch (this.value)

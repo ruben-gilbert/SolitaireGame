@@ -9,10 +9,8 @@ namespace SolitaireGame
 {
     public class Deck
     {
-        // Instance Variables
         private List<Card> cards;
 
-        // Constructors
         public Deck()
         {
             this.cards = new List<Card>();
@@ -31,13 +29,9 @@ namespace SolitaireGame
             this.cards = c;
         }
 
-        // *******************************
-        // Methods
-        // *******************************
-
-        public ref List<Card> GetCards()
+        public List<Card> GetCards()
         {
-            return ref this.cards;
+            return this.cards;
         }
 
         public bool IsEmpty()
@@ -55,26 +49,29 @@ namespace SolitaireGame
             return this.cards.Count;
         }
 
-        // Use simple Fisher-Yates shuffle
+        /// <summary>
+        /// Shuffles the Deck using Fisher-Yates shuffle
+        /// </summary>
         public void Shuffle()
         {
             Random random = new Random();
             int n = this.cards.Count - 1;
 
-            int choice;
-            Card temp;
-
             while (n > 1)
             {
-                choice = random.Next(n);
-                temp = this.cards[choice];
+                int choice = random.Next(n);
+                Card temp = this.cards[choice];
                 this.cards[choice] = this.cards[n];
                 this.cards[n] = temp;
                 n--;
             }
         }
 
-        // Take a slice off the front of the List
+        /// <summary>
+        /// Deals a certain number of cards from the Deck
+        /// </summary>
+        /// <param name="num">The number of Cards to deal</param>
+        /// <returns>A List of Cards of size num</returns>
         public List<Card> Deal(int num)
         {
             List<Card> c = this.cards.GetRange(0, num);
@@ -82,6 +79,10 @@ namespace SolitaireGame
             return c;
         }
 
+        /// <summary>
+        /// String representation of this Deck
+        /// </summary>
+        /// <returns>A string with comma separated Card representations</returns>
         public override string ToString()
         {
             return "[" + String.Join(", ", this.cards) + "]";

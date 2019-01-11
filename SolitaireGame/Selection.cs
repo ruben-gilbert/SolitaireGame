@@ -61,6 +61,29 @@ namespace SolitaireGame
             this.valid = true;
         }
 
+        public int Size()
+        {
+            return this.cards.Count;
+        }
+
+        public bool CompareCards(List<Card> other)
+        {
+            if (this.cards.Count != other.Count)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < other.Count; i++)
+            {
+                if (!other[i].Equals(this.cards[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         public void Clear()
         {
             this.cards.Clear();
