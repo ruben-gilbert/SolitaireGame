@@ -174,15 +174,21 @@ namespace SolitaireGame
             // Draw Tableus (7 columns)
             for (int col = 0; col < this.board.Count; col++)
             {
-                // TODO if column is empty, draw a black border
+                int colX = buf + (colSpace * (col + 1)) + (width * col);
 
-                for (int row = 0; row < this.board[col].Count; row++)
+                if (this.board[col].Count == 0)
                 {
-                    int colX = buf + (colSpace * (col + 1)) + (width * col);
-                    int colY = row_start + (sep * row);
+                    DrawBorder(s, tx, Color.Black, colX, row_start, width, height);
+                }
+                else
+                {
+                    for (int row = 0; row < this.board[col].Count; row++)
+                    {
+                        int colY = row_start + (sep * row);
 
-                    Card c3 = this.board[col][row];
-                    c3.Draw(s, colX, colY, Color.White);
+                        Card c3 = this.board[col][row];
+                        c3.Draw(s, colX, colY, Color.White);
+                    }
                 }
             }
 
@@ -325,11 +331,8 @@ namespace SolitaireGame
                     if (locClicked != null)
                     {
                         HandleColumnClick(locClicked);
-                        // TODO the column space was clicked, figure out which card was clicked (and if valid)
 
                         // TODO If there is already a valid selection, see if it applies to this column
-
-                        // TODO Otherwise, select the column if a flipped Card was clicked
                     }
                     else
                     {
@@ -455,19 +458,70 @@ namespace SolitaireGame
             //      - if the card is face up, select the entire column beneath it
             //      - if the card is face down, don't do anything
 
+            int col = locClicked.Item1;
+            int row = locClicked.Item2;
+            int size = this.board[col].Count;
+            bool validMove = false;
+
             if (this.sel.IsValid())
             {
-                // TODO handle if col 0 is clicked but empty vs clicked with card there
+                if (this.board[col].Count == 0)
+                {
+                    // If the column is empty, we can only play a selection starting with a king
+                    if (this.sel.Cards[0].Val == 13)
+                    {
+                        validMove = true;
+                    }
+                }
+                else
+                {
+                    Card lastInCol = this.board[col][size - 1];
+                    Card firstInSel = this.sel.Cards[0];
+
+                    if (lastInCol.OppositeSuits(firstInSel))
+                    {
+                        if (lastInCol.Val == firstInSel.Val + 1)
+                        {
+                            validMove = true;
+                        }
+                    }
+                }
+
                 // TODO handle clicks on a column with a selection already valid
-                // TODO if the selection is coming from a column, flip the last card face up
+
+                if (validMove)
+                {
+                    // If selection is from discard, remove it from the pile
+                    if (this.sel.Source == 7)
+                    {
+                        this.discard.Remove(this.sel.Cards[0]);
+                    }
+                    else
+                    {
+                        // TODO TEST THIS AND FIX IT BECAUSE IT'S BROKEN
+                        // TODO remove the selection from the col it is coming from
+                        int numCards = size - this.sel.Size();
+                        this.board[this.sel.Source].RemoveRange(numCards, numCards);
+
+                        // If column still has cards, flip the last one face up
+                        if (this.board[this.sel.Source].Count > 0)
+                        {
+                            int newColSize = this.board[this.sel.Source].Count - 1;
+                            this.board[this.sel.Source][newColSize].Flip();
+                        }
+
+                        this.board[col].AddRange(this.sel.Cards);
+                        this.sel.Clear();
+                        // TODO if the selection is coming from a column, flip the last card face up
+                    }
+
+
+                }
             }
             else
             {
-                int col = locClicked.Item1;
-                int row = locClicked.Item2;
 
                 Card clicked = this.board[col][row];
-                int size = this.board[col].Count;
                 int count = size - row;
 
                 if (clicked.Up)
@@ -583,7 +637,6 @@ namespace SolitaireGame
                     this.foundations[fdNum].Push(selCard);
                     this.sel.Clear();
                 }
-                
             }
         }
     }

@@ -132,6 +132,23 @@ namespace SolitaireGame
         }
 
         /// <summary>
+        /// Checks if this card and some other card are opposite suits
+        /// </summary>
+        /// <returns><c>true</c>, if the suits are opposite, <c>false</c> otherwise.</returns>
+        /// <param name="other">Some other Card object</param>
+        public bool OppositeSuits(Card other)
+        {
+            if (this.suit.Equals("H") || this.suit.Equals("D"))
+            {
+                return other.Suit.Equals("S") || other.Suit.Equals("C");
+            }
+            else
+            {
+                return other.Suit.Equals("H") || other.Suit.Equals("D");
+            }
+        }
+
+        /// <summary>
         /// Representation of a Card as a string
         /// </summary>
         /// <returns>A string of the Card's value and suit</returns>
