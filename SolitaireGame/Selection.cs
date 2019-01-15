@@ -12,6 +12,7 @@ namespace SolitaireGame
     {
         private List<Card> cards;
         private bool valid;
+        private int source;
         private int x;
         private int y;
         private int w;
@@ -24,10 +25,31 @@ namespace SolitaireGame
         {
             this.cards = new List<Card>();
             this.valid = false;
+            this.source = -1;
             this.x = 0;
             this.y = 0;
             this.w = Constants.CARD_WIDTH;
             this.h = 0;
+        }
+
+        /// <summary>
+        /// Gets the List of Card objects this Selection holds.
+        /// </summary>
+        public List<Card> Cards
+        {
+            get { return this.cards; }
+        }
+
+        /// <summary>
+        /// Returns the source of this Selection object.
+        /// -1 is invalid
+        /// 0-6 is column number
+        /// 7 is discard pile
+        /// </summary>
+        /// <value>The new source of this Selection</value>
+        public int Source
+        {
+            get { return this.source; }
         }
 
         /// <summary>
@@ -82,10 +104,14 @@ namespace SolitaireGame
         /// Change what Cards this Selection refers to.
         /// </summary>
         /// <param name="c">A List of Cards</param>
-        public void Change(List<Card> c)
+        public void Change(List<Card> c, int src, int x, int y, int h)
         {
             this.cards = c;
             this.valid = true;
+            this.source = src;
+            this.x = x;
+            this.y = y;
+            this.h = h;
         }
 
         /// <summary>
@@ -128,6 +154,7 @@ namespace SolitaireGame
         {
             this.cards.Clear();
             this.valid = false;
+            this.source = -1;
             this.x = 0;
             this.y = 0;
         }

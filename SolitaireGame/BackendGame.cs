@@ -174,6 +174,8 @@ namespace SolitaireGame
             // Draw Tableus (7 columns)
             for (int col = 0; col < this.board.Count; col++)
             {
+                // TODO if column is empty, draw a black border
+
                 for (int row = 0; row < this.board[col].Count; row++)
                 {
                     int colX = buf + (colSpace * (col + 1)) + (width * col);
@@ -287,10 +289,10 @@ namespace SolitaireGame
                     else
                     {
                         List<Card> cur_sel = this.discard.GetRange(this.discard.Count - 1, 1);
-                        this.sel.Change(cur_sel);
-                        this.sel.X = Constants.DISCARD_XCOR;
-                        this.sel.Y = Constants.DISCARD_YCOR;
-                        this.sel.H = Constants.CARD_HEIGHT;
+                        this.sel.Change(cur_sel, 7, 
+                            Constants.DISCARD_XCOR, 
+                            Constants.DECK_YCOR,
+                            Constants.CARD_HEIGHT);
                     }
                 }
             }
@@ -299,16 +301,15 @@ namespace SolitaireGame
             {
                 // If the top part of the screen is clicked, AND there is a 
                 // selection currently active, check for click on foundations
-                if (y > Constants.TABLE_START && this.sel.IsValid())
+                if (y < Constants.TABLE_START && this.sel.IsValid())
                 {
                     //  -1: invalid clicked
                     // 0-3: number of foundation, left-to-right
-                    int fd_clicked = CheckFoundationClick(x, y);
+                    int fdNumClicked = CheckFoundationClick(x, y);
 
-                    if (fd_clicked != -1)
+                    if (fdNumClicked != -1)
                     {
-                        // TODO check if the selection can go in the foundation
-                        // If no selection is made, don't do anything for now
+                        HandleFoundationClick(fdNumClicked);
                     }
                     else
                     {
@@ -318,12 +319,12 @@ namespace SolitaireGame
                 // Otherwise, check if one of the columns was clicked
                 else
                 {
-                    //  -1: invalid click
-                    // 0-6: number of column left-to-right
-                    int tab_clicked = CheckColumnClick(x, y);
+                    // Tuple of structure (colNum, rowNum)
+                    Tuple<int, int> locClicked = CheckColumnClick(x, y);
 
-                    if (tab_clicked != -1)
+                    if (locClicked != null)
                     {
+                        HandleColumnClick(locClicked);
                         // TODO the column space was clicked, figure out which card was clicked (and if valid)
 
                         // TODO If there is already a valid selection, see if it applies to this column
@@ -381,18 +382,209 @@ namespace SolitaireGame
             return false;
         }
 
-        // TODO think of the best way to do this
-        public int CheckColumnClick(int x, int y)
+        /// <summary>
+        /// Checks if a column has been clicked.  This method is only ever invoked thru
+        /// MouseClicked in response to a click below the halfway point of the board.
+        /// </summary>
+        /// <param name="x">The X-coordinate of the click.</param>
+        /// <param name="y">The Y-coordinate of the click.</param>
+        /// <returns>A 2 item Tuple containing (int, int).  First integer is the
+        /// column number, the second integer is the row number.  Returns null if the click
+        /// is not valid</returns>
+        public Tuple<int, int> CheckColumnClick(int x, int y)
         {
-            // TODO figure out if column was clicked
+            int sep = Constants.TABLE_CARD_SEPARATION;
+            int w = Constants.CARD_WIDTH;
+            int h = Constants.CARD_HEIGHT;            
+            int colSpace = (Constants.WINDOW_WIDTH / 7) - w;
+            int buf = -(colSpace / 2);
+            int start = Constants.TABLE_START;
+
+            for (int col = 0; col <= 6; col++)
+            {
+                int numCards = this.board[col].Count;
+
+                if (numCards == 0)
+                {
+                    // TODO if there aren't any cards in the column, can we still click it?
+                }
+                else
+                {
+                    int colHeight = (numCards - 1) * sep + h;
+                    int left = buf + (colSpace * (col + 1)) + (w * col);
+                    int right = left + w;
+
+                    // If the click is in the correct left-right bounds of the column
+                    if (left <= x && x <= right)
+                    {
+                        // If the click is within the actual span of the cards
+                        if (start <= y && y <= start + colHeight)
+                        {
+                            // Check the last card first since it is treated specially
+                            if (start + colHeight - h <= y && y <= start + colHeight)
+                            {
+                                return new Tuple<int, int>(col, numCards - 1);
+                            }
+                            else
+                            {
+                                // For all cards except the last in the column
+                                for (int row = 0; row < numCards - 1; row++)
+                                {
+                                    // Check if the click was within the small bounds for it
+                                    if (start + (sep * row) <= y && y < start + (sep * (row + 1)))
+                                    {
+                                        return new Tuple<int, int>(col, row);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return null;
+        }
+
+        public void HandleColumnClick(Tuple<int, int> locClicked)
+        {
+            // Two cases:
+            // 1) column clicked while a selection is already made
+            //      - see if the current selection can be applied to the column
+            // 2) no selection is made
+            //      - check which card was clicked
+            //      - if the card is face up, select the entire column beneath it
+            //      - if the card is face down, don't do anything
+
+            if (this.sel.IsValid())
+            {
+                // TODO handle if col 0 is clicked but empty vs clicked with card there
+                // TODO handle clicks on a column with a selection already valid
+                // TODO if the selection is coming from a column, flip the last card face up
+            }
+            else
+            {
+                int col = locClicked.Item1;
+                int row = locClicked.Item2;
+
+                Card clicked = this.board[col][row];
+                int size = this.board[col].Count;
+                int count = size - row;
+
+                if (clicked.Up)
+                {
+                    int w = Constants.CARD_WIDTH;
+                    int h = Constants.CARD_HEIGHT;
+                    int sep = Constants.TABLE_CARD_SEPARATION;
+                    int start = Constants.TABLE_START;
+                    int colSpace = (Constants.WINDOW_WIDTH / 7) - w;
+                    int buf = -(colSpace / 2);
+                    int colHeight = (count - 1) * sep + h;
+
+                    int selX = buf + (colSpace * (col + 1)) + (w * col);
+                    int selY = start + (sep * row);
+                    int selH = (sep * (count - 1)) + h;
+
+                    this.sel.Change(this.board[col].GetRange(row, count), col, selX, selY, selH);
+                }
+            }
+
+        }
+
+        /// <summary>
+        /// Checks if a foundation has been clicked.  This method is only ever invoked thru
+        /// MouseClicked in response to a click above the table section of the board.
+        /// </summary>
+        /// <param name="x">The X-coordinate of the click.</param>
+        /// <param name="y">The Y-coordinate of the click.</param>
+        /// <returns>An integer between 0 and 3, representing the foundation that was clicked
+        /// (left-to-right.  Returns -1 if no valid foundation was clicked.</returns>
+        public int CheckFoundationClick(int x, int y)
+        {
+            int w = Constants.CARD_WIDTH;
+            int h = Constants.CARD_HEIGHT;
+            int colSpace = (Constants.WINDOW_WIDTH / 7) - w;
+            int buf = -(colSpace / 2);
+            int top = Constants.DECK_YCOR;
+            int bottom = Constants.DECK_YCOR + h;
+
+            for (int fd = 0; fd <= 3; fd++)
+            {
+                int left = buf + (colSpace * (fd + 4)) + (w * ((fd + 4) - 1));
+                int right = left + w;
+
+                if (left <= x && x <= right)
+                {
+                    if (top <= y && y <= bottom)
+                    {
+                        return fd;
+                    }
+                }
+            }
+
             return -1;
         }
 
-        // TODO think of the best way to do this
-        public int CheckFoundationClick(int x, int y)
+        /// <summary>
+        /// Given the number of which foundation was clicked, checks to see if the current
+        /// selection can be applied to the foundation.  This method shouldn't get called
+        /// if there is not a valid selection (i.e. clicking on foundations without something
+        /// selected prior shouldn't do anything)
+        /// </summary>
+        /// <param name="fdNum">The number, 0-3, of the foundation clicked (left-to-right)</param>
+        public void HandleFoundationClick(int fdNum)
         {
-            // TODO figure out if foundation was clicked
-            return -1;
+            bool validMove = false;
+
+            // Selection's of more than one card can't be played into the foundation
+            if (this.sel.Size() == 1 && this.sel.IsValid())
+            {
+                Card selCard = this.sel.Cards[0];
+
+                if (this.foundations[fdNum].Count == 0)
+                {
+                    if (selCard.Val == 1)
+                    {
+                        validMove = true;
+                    }
+                }
+                else
+                {
+                    Card fdCard = this.foundations[fdNum].Peek();
+
+                    if (selCard.SameSuit(fdCard))
+                    {
+                        if (selCard.Val == fdCard.Val + 1)
+                        {
+                            validMove = true;
+                        }
+                    }
+                }
+
+                // If the attempted move is valid, remove the Card from wherever it currently
+                // lives and add it to the foundation it belongs in
+                if (validMove)
+                {
+                    if (this.sel.Source == 7)
+                    {
+                        this.discard.Remove(selCard);
+                    }
+                    else
+                    {
+                        this.board[this.sel.Source].Remove(selCard);
+
+                        // If column still has cards, flip the last one face up
+                        if (this.board[this.sel.Source].Count > 0)
+                        {
+                            int size = this.board[this.sel.Source].Count - 1;
+                            this.board[this.sel.Source][size].Flip();
+                        }
+                    }
+
+                    this.foundations[fdNum].Push(selCard);
+                    this.sel.Clear();
+                }
+                
+            }
         }
     }
 }

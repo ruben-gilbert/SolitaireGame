@@ -47,6 +47,15 @@ namespace SolitaireGame
         }
 
         /// <summary>
+        /// Gets the suit of this Card.
+        /// </summary>
+        /// <value>NULL</value>
+        public string Suit
+        {
+            get { return this.suit; }
+        }
+
+        /// <summary>
         /// Gets the Texture of the front of this Card.
         /// </summary>
         /// <value>The front Texture</value>
@@ -110,6 +119,16 @@ namespace SolitaireGame
                 s.Draw(this.front, r, c);
             else
                 s.Draw(this.back, r, c);
+        }
+
+        /// <summary>
+        /// Compares the suit of this Card with some other Card.
+        /// </summary>
+        /// <param name="other">Some other Card object</param>
+        /// <returns>true if the suits are the same, false otherwise</returns>
+        public bool SameSuit(Card other)
+        {
+            return this.suit.Equals(other.Suit);
         }
 
         /// <summary>
