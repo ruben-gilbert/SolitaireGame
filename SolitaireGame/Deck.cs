@@ -74,20 +74,23 @@ namespace SolitaireGame
         }
 
         /// <summary>
-        /// Shuffles the Deck using Fisher-Yates shuffle
+        /// Shuffles the Deck 3 times using Fisher-Yates shuffle
         /// </summary>
         public void Shuffle()
         {
-            Random random = new Random();
-            int n = this.cards.Count - 1;
-
-            while (n > 1)
+            for (int i = 0; i < 3; i++)
             {
-                int choice = random.Next(n);
-                Card temp = this.cards[choice];
-                this.cards[choice] = this.cards[n];
-                this.cards[n] = temp;
-                n--;
+                Random random = new Random();
+                int n = this.cards.Count - 1;
+
+                while (n > 1)
+                {
+                    int choice = random.Next(n);
+                    Card temp = this.cards[choice];
+                    this.cards[choice] = this.cards[n];
+                    this.cards[n] = temp;
+                    n--;
+                }
             }
         }
 

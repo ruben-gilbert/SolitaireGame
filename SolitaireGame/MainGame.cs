@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework.Input;
 namespace SolitaireGame
 {
     /// <summary>
-    /// This is the main type for your game.
+    /// The MainGame class inherits the Monogame Game class.
     /// </summary>
     public class MainGame : Game
     {
@@ -80,11 +80,12 @@ namespace SolitaireGame
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == 
-                ButtonState.Pressed ||
-                Keyboard.GetState().IsKeyDown(Keys.Escape))
+            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
                 Exit();
+            } else if (Keyboard.GetState().IsKeyDown(Keys.R))
+            {
+                NewGame();
             }
 
             // Get the current state of the mouse.  If it's currently pressed
@@ -117,6 +118,20 @@ namespace SolitaireGame
             spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+
+        protected void NewGame()
+        {
+            this.backendGame.NewGame();
+
+            // Load the image textures for each Card
+            foreach (Card c in this.backendGame.GetDeck().GetCards())
+            {
+                c.LoadImages(this, "purple");
+            }
+
+            // Build the board now that textures have been loaded
+            this.backendGame.BuildBoard();
         }
     }
 }
