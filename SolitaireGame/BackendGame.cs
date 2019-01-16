@@ -456,14 +456,11 @@ namespace SolitaireGame
             // If there is a currently valid selection, check if it can be played in this column
             if (this.sel.IsValid())
             {
-                Console.WriteLine("Target col size: " + cardsInCol);
                 // If the column is empty, we can only play a selection starting with a king
                 if (cardsInCol == 0)
-                {
-                    Console.WriteLine("Card Value: " + this.sel.Cards[0].Val);
+                { 
                     if (this.sel.Cards[0].Val == 13)
                     {
-                        Console.WriteLine("TRYING TO MOVE A SELECTION STARTING WITH A KING");
                         validMove = true;
                     }
                 }
@@ -636,5 +633,9 @@ namespace SolitaireGame
                 }
             }
         }
+
+        // TODO write a method to attempt to auto finish the game
+        // TODO handle double clicks to attempt to auto play 
+        // TODO undo functionality?
     }
 }
