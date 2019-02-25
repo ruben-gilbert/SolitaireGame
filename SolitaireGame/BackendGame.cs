@@ -252,8 +252,9 @@ namespace SolitaireGame
         /// MainGame.Update() every time a mouse click is detected.
         /// </summary>
         /// <param name="x">The X-coordinate of the mouse click</param>
-        /// <param name="y">The Y-coordinate of the mouse click</param>        
-        public void MouseClicked(int x, int y)
+        /// <param name="y">The Y-coordinate of the mouse click</param> 
+        /// <param name="doubleClick">Boolean signifying if the click was a double click</param>       
+        public void MouseClicked(int x, int y, bool doubleClick)
         {
             // Check for deck click
             if (DeckClicked(x, y))
@@ -288,24 +289,38 @@ namespace SolitaireGame
             // Check for discard pile click
             else if (DiscardClicked(x, y))
             {
-                // If there are cards in discard pile, make the top card the selection unless
-                // it is already selected, in which case, unselect it
                 if (this.discard.Count > 0)
                 {
-                    List<Card> test = new List<Card>(
-                        this.discard.GetRange(this.discard.Count - 1, 1));
-
-                    if (this.sel.Size() == 1 && this.sel.IsValid() && this.sel.CompareCards(test))
+                    if (doubleClick)
                     {
                         this.sel.Clear();
+                        List<Card> cur_sel = this.discard.GetRange(this.discard.Count - 1, 1);
+                        this.sel.Change(cur_sel, 7,
+                            Constants.DISCARD_XCOR,
+                            Constants.DECK_YCOR,
+                            Constants.CARD_HEIGHT);
+                        AttemptToScore();
                     }
                     else
                     {
-                        List<Card> cur_sel = this.discard.GetRange(this.discard.Count - 1, 1);
-                        this.sel.Change(cur_sel, 7, 
-                            Constants.DISCARD_XCOR, 
-                            Constants.DECK_YCOR,
-                            Constants.CARD_HEIGHT);
+                        // make the top card the selection unless
+                        // it is already selected, in which case, unselect it
+                        List<Card> test = new List<Card>(
+                            this.discard.GetRange(this.discard.Count - 1, 1)
+                        );
+
+                        if (this.sel.Size() == 1 && this.sel.IsValid() && this.sel.CompareCards(test))
+                        {
+                            this.sel.Clear();
+                        }
+                        else
+                        {
+                            List<Card> cur_sel = this.discard.GetRange(this.discard.Count - 1, 1);
+                            this.sel.Change(cur_sel, 7,
+                                Constants.DISCARD_XCOR,
+                                Constants.DECK_YCOR,
+                                Constants.CARD_HEIGHT);
+                        }
                     }
                 }
             }
@@ -314,6 +329,9 @@ namespace SolitaireGame
             {
                 // If the top part of the screen is clicked, AND there is a 
                 // selection currently active, check for click on foundations
+
+                // TODO if foundation clicked with no selection, select the top card (will
+                //      need to adjust Selection class sources
                 if (y < Constants.TABLE_START && this.sel.IsValid())
                 {
                     //  -1: invalid clicked
@@ -337,7 +355,14 @@ namespace SolitaireGame
 
                     if (locClicked != null)
                     {
-                        HandleColumnClick(locClicked);
+                        if (doubleClick)
+                        {
+                            HandleColumnClick(locClicked, true);
+                        }
+                        else
+                        {
+                            HandleColumnClick(locClicked, false);
+                        }
                     }
                     else
                     {
@@ -446,7 +471,12 @@ namespace SolitaireGame
             return null;
         }
 
-        public void HandleColumnClick(Tuple<int, int> locClicked)
+        /// <summary>
+        /// Given the (x,y) coordinates of a click, properly handles
+        /// the click if it was on a column of cards
+        /// </summary>
+        /// <param name="locClicked">Tuple storing the (x,y) location clicked.</param>
+        public void HandleColumnClick(Tuple<int, int> locClicked, bool doubleClick)
         {
             int col = locClicked.Item1;
             int row = locClicked.Item2;
@@ -514,7 +544,6 @@ namespace SolitaireGame
             }
             else
             {
-
                 Card clicked = this.board[col][row];
                 int count = cardsInCol - row;
 
@@ -533,9 +562,16 @@ namespace SolitaireGame
                     int selH = (sep * (count - 1)) + h;
 
                     this.sel.Change(this.board[col].GetRange(row, count), col, selX, selY, selH);
-                }
-            }
 
+                    // Don't bother trying to score the selection if there is more than one 
+                    // card selected
+                    if (doubleClick && count == 1)
+                    {
+                        AttemptToScore();
+                    }
+                }
+            
+            }
         }
 
         /// <summary>
@@ -634,8 +670,77 @@ namespace SolitaireGame
             }
         }
 
+        /// <summary>
+        /// Attempts to score the current selection.  This method assumes it will only
+        /// ever get called when the selection is one card (we can't attempt to score more
+        /// than one card).
+        /// </summary>
+        public void AttemptToScore()
+        {
+            Card selCard = this.sel.Cards[0];
+
+            for (int i = 0; i < 4; i++)
+            {
+                if (this.foundations[i].Count > 0)
+                {
+                    Card fCard = this.foundations[i].Peek();
+
+                    // TODO make subroutine out of this functonality?
+                    if (selCard.SameSuit(fCard) && selCard.Val == fCard.Val + 1)
+                    {
+                        if (this.sel.Source == 7)
+                        {
+                            this.discard.Remove(selCard);
+                        }
+                        else
+                        {
+                            this.board[this.sel.Source].Remove(selCard);
+
+                            // If column still has cards AND the last card isn't face up, flip it
+                            int size = this.board[this.sel.Source].Count;
+                            if (size > 0 && !this.board[this.sel.Source][size - 1].Up)
+                            {
+                                this.board[this.sel.Source][size - 1].Flip();
+                            }
+                        }
+
+                        this.foundations[i].Push(selCard);
+                        this.sel.Clear();
+                        break;
+                    }
+                }
+                else
+                {
+                    // if the foundation is empty and we are trying to play
+                    // an ace, go ahead and play it in this foundation
+                    if (selCard.Val == 1)
+                    {
+                        if (this.sel.Source == 7)
+                        {
+                            this.discard.Remove(selCard);
+                        }
+                        else
+                        {
+                            this.board[this.sel.Source].Remove(selCard);
+
+                            // If column still has cards AND the last card isn't face up, flip it
+                            int size = this.board[this.sel.Source].Count;
+                            if (size > 0 && !this.board[this.sel.Source][size - 1].Up)
+                            {
+                                this.board[this.sel.Source][size - 1].Flip();
+                            }
+                        }
+
+                        this.foundations[i].Push(selCard);
+                        this.sel.Clear();
+                        break;
+                    }
+                }
+            }
+        }
+
         // TODO write a method to attempt to auto finish the game
-        // TODO handle double clicks to attempt to auto play 
+        // TODO handle double clicks to attempt to auto play, TABLE REQUIRING TRIPLE CLICKS?
         // TODO undo functionality?
     }
 }

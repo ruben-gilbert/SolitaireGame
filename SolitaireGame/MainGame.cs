@@ -20,10 +20,17 @@ namespace SolitaireGame
         BackendGame backendGame;
         private MouseState curState;
         private MouseState oldState;
+        private double clickTimer;
+        const double timerDelay = 500;
         
         public MainGame()
         {
             graphics = new GraphicsDeviceManager(this);
+
+            Constants.WINDOW_WIDTH = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+            Constants.WINDOW_HEIGHT = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+            Constants.TABLE_START = Constants.WINDOW_HEIGHT / 3;
+
             graphics.PreferredBackBufferWidth = Constants.WINDOW_WIDTH;
             graphics.PreferredBackBufferHeight = Constants.WINDOW_HEIGHT;
             graphics.ApplyChanges();
@@ -45,6 +52,7 @@ namespace SolitaireGame
             this.IsMouseVisible = true;
             this.curState = Mouse.GetState();
             this.oldState = Mouse.GetState();
+            this.clickTimer = 0;
 
             base.Initialize();
         }
@@ -86,7 +94,8 @@ namespace SolitaireGame
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
                 Exit();
-            } else if (Keyboard.GetState().IsKeyDown(Keys.R))
+            } 
+            else if (Keyboard.GetState().IsKeyDown(Keys.R))
             {
                 NewGame();
             }
@@ -96,11 +105,24 @@ namespace SolitaireGame
             // attempt to handle
             this.curState = Mouse.GetState();
 
+            this.clickTimer += gameTime.ElapsedGameTime.TotalMilliseconds;
+
             if (this.curState.LeftButton == ButtonState.Pressed &&
                 this.oldState.LeftButton == ButtonState.Released)
             {
-                // The backend game handles if the click is valid
-                this.backendGame.MouseClicked(curState.X, curState.Y);
+                if (this.clickTimer < timerDelay)
+                {
+                    // Double Click Detected
+                    this.backendGame.MouseClicked(curState.X, curState.Y, true);
+                }
+                else
+                {
+                    // Single click detected
+                    this.backendGame.MouseClicked(curState.X, curState.Y, false);
+                }
+
+                this.clickTimer = 0;
+
             }
 
             this.oldState = curState;
@@ -123,6 +145,9 @@ namespace SolitaireGame
             base.Draw(gameTime);
         }
 
+        /// <summary>
+        /// Reinitializes the properties of the Backend Game object
+        /// </summary>
         protected void NewGame()
         {
             this.backendGame.NewGame();
