@@ -749,6 +749,7 @@ namespace SolitaireGame
         }
 
         // TODO write a method to attempt to auto finish the game
+        // TODO scoring?
         // TODO undo functionality?
     }
 }
