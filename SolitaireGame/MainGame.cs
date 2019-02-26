@@ -44,8 +44,11 @@ namespace SolitaireGame
         /// </summary>
         protected override void Initialize()
         {
-            // TODO add resolution selections (720p, 1080p, fullscreen?)
-            // TODO main menu (number of cards to draw, instructions, etc)
+            // TODO Use Myra UI (or some UI builder? emptykeys?) for the following:
+                // add resolution selections (720p, 1080p, fullscreen?)
+                // add new game button
+                // add cards per deal option
+                // main menu (number of cards to draw, instructions, etc)  -- or no?
 
             this.backendGame = new BackendGame();
 
