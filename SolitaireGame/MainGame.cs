@@ -44,7 +44,7 @@ namespace SolitaireGame
         /// </summary>
         protected override void Initialize()
         {
-            // TODO set screen size to be full screen based on the monitor?
+            // TODO add resolution selections (720p, 1080p, fullscreen?)
             // TODO main menu (number of cards to draw, instructions, etc)
 
             this.backendGame = new BackendGame();

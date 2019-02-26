@@ -483,8 +483,12 @@ namespace SolitaireGame
             int cardsInCol = this.board[col].Count;
             bool validMove = false;
 
-            // If there is a currently valid selection, check if it can be played in this column
-            if (this.sel.IsValid())
+            Card clicked = null;
+            int count = -1;
+
+            // If there is a currently valid selection, and we didn't enter this method
+            // thinking it was a double click, check if it can be played in this column
+            if (this.sel.IsValid() && !doubleClick)
             {
                 // If the column is empty, we can only play a selection starting with a king
                 if (cardsInCol == 0)
@@ -544,34 +548,39 @@ namespace SolitaireGame
             }
             else
             {
-                Card clicked = this.board[col][row];
-                int count = cardsInCol - row;
-
-                if (clicked.Up)
+                if (cardsInCol > 0)
                 {
-                    int w = Constants.CARD_WIDTH;
-                    int h = Constants.CARD_HEIGHT;
-                    int sep = Constants.TABLE_CARD_SEPARATION;
-                    int start = Constants.TABLE_START;
-                    int colSpace = (Constants.WINDOW_WIDTH / 7) - w;
-                    int buf = -(colSpace / 2);
-                    int colHeight = (count - 1) * sep + h;
+                    clicked = this.board[col][row];
+                    count = cardsInCol - row;
 
-                    int selX = buf + (colSpace * (col + 1)) + (w * col);
-                    int selY = start + (sep * row);
-                    int selH = (sep * (count - 1)) + h;
-
-                    this.sel.Change(this.board[col].GetRange(row, count), col, selX, selY, selH);
-
-                    // Don't bother trying to score the selection if there is more than one 
-                    // card selected
-                    if (doubleClick && count == 1)
+                    if (clicked.Up)
                     {
-                        AttemptToScore();
+                        int w = Constants.CARD_WIDTH;
+                        int h = Constants.CARD_HEIGHT;
+                        int sep = Constants.TABLE_CARD_SEPARATION;
+                        int start = Constants.TABLE_START;
+                        int colSpace = (Constants.WINDOW_WIDTH / 7) - w;
+                        int buf = -(colSpace / 2);
+                        int colHeight = (count - 1) * sep + h;
+
+                        int selX = buf + (colSpace * (col + 1)) + (w * col);
+                        int selY = start + (sep * row);
+                        int selH = (sep * (count - 1)) + h;
+
+                        this.sel.Change(this.board[col].GetRange(row, count), col, selX, selY, selH);
+
+                        // Don't bother trying to score the selection if there is more than one 
+                        // card selected
+                        if (doubleClick && count == 1 && clicked != null)
+                        {
+                            AttemptToScore();
+                        }
+
                     }
                 }
-            
             }
+
+            
         }
 
         /// <summary>
@@ -740,7 +749,6 @@ namespace SolitaireGame
         }
 
         // TODO write a method to attempt to auto finish the game
-        // TODO handle double clicks to attempt to auto play, TABLE REQUIRING TRIPLE CLICKS?
         // TODO undo functionality?
     }
 }
