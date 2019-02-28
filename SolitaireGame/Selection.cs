@@ -15,7 +15,7 @@ namespace SolitaireGame
         private int source;
         private int x;
         private int y;
-        private int w;
+        private readonly int w;
         private int h;
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace SolitaireGame
             this.source = -1;
             this.x = 0;
             this.y = 0;
-            this.w = Constants.CARD_WIDTH;
+            this.w = GameProperties.CARD_WIDTH;
             this.h = 0;
         }
 

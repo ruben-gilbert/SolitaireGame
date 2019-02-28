@@ -19,6 +19,7 @@ namespace SolitaireGame
         private List<Stack<Card>> foundations;
         private List<List<Card>> board;
         private Selection sel;
+        private int score;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:SolitaireGame.BackendGame"/> class.
@@ -52,6 +53,11 @@ namespace SolitaireGame
 
             // Init Selection object
             this.sel = new Selection();
+
+            // Init score
+            this.score = 0;
+
+            // TODO multiple card deals   
         }
 
         /// <summary>
@@ -70,6 +76,15 @@ namespace SolitaireGame
         public List<List<Card>> GetBoard()
         {
             return this.board;
+        }
+
+        /// <summary>
+        /// Gets the score of this Game
+        /// </summary>
+        /// <returns>The score of this Game</returns>
+        public int GetScore()
+        {
+            return this.score;
         }
 
 
@@ -134,17 +149,17 @@ namespace SolitaireGame
         /// <param name="s">The 2D drawing object</param>
         public void DrawGame(GraphicsDevice g, SpriteBatch s)
         {
-            int width = Constants.CARD_WIDTH;
-            int height = Constants.CARD_HEIGHT;
-            int deckX = Constants.DECK_XCOR;
-            int deckY = Constants.DECK_YCOR;
-            int discardX = Constants.DISCARD_XCOR;
-            int discardY = Constants.DISCARD_YCOR;
+            int width = GameProperties.CARD_WIDTH;
+            int height = GameProperties.CARD_HEIGHT;
+            int deckX = GameProperties.DECK_XCOR;
+            int deckY = GameProperties.DECK_YCOR;
+            int discardX = GameProperties.DISCARD_XCOR;
+            int discardY = GameProperties.DISCARD_YCOR;
             int deckOffset = 0; 
 
-            int colSpace = (Constants.WINDOW_WIDTH / 7) - width;
-            int row_start = Constants.TABLE_START;
-            int sep = Constants.TABLE_CARD_SEPARATION;
+            int colSpace = (GameProperties.WINDOW_WIDTH / 7) - width;
+            int row_start = GameProperties.TABLE_START;
+            int sep = GameProperties.TABLE_CARD_SEPARATION;
             int buf = -(colSpace / 2);
 
             List<Card> cards = this.d.GetCards();
@@ -261,7 +276,8 @@ namespace SolitaireGame
             {
                 this.sel.Clear();
 
-                // If the deck has no cards, reset the deck and empty discard pile
+                // If the deck has no cards, reset the deck and empty discard pile,
+                // and remove 100 points
                 if (this.d.IsEmpty())
                 {
                     foreach (Card c in this.discard)
@@ -270,14 +286,20 @@ namespace SolitaireGame
                         this.d.AddCard(c);
                     }
                     this.discard.Clear();
+
+                    // Only remove points for a re-deal if we are drawing one card per flip
+                    if (GameProperties.DEAL_MODE == 1)
+                    {
+                        // The min score allowed is 0, so be sure to cap it if we have less than 100 pts
+                        this.score = this.score < 100 ? 0 : this.score - 100;
+                    }
+
                 }
                 // Otherwise, the deck still has cards
                 else
                 {
-                    // Deal one card into the discard pile.  Hardcoded to 1 for now, can extend to
-                    // multiple card deals at some point
-                    // TODO multiple card deals
-                    List<Card> drawn = this.d.Deal(1);
+                    // Deal card(s) into the discard pile.
+                    List<Card> drawn = this.d.Deal(GameProperties.DEAL_MODE);
 
                     foreach (Card c in drawn)
                         c.Flip();
@@ -296,14 +318,20 @@ namespace SolitaireGame
                         this.sel.Clear();
                         List<Card> cur_sel = this.discard.GetRange(this.discard.Count - 1, 1);
                         this.sel.Change(cur_sel, 7,
-                            Constants.DISCARD_XCOR,
-                            Constants.DECK_YCOR,
-                            Constants.CARD_HEIGHT);
-                        AttemptToScore();
+                            GameProperties.DISCARD_XCOR,
+                            GameProperties.DECK_YCOR,
+                            GameProperties.CARD_HEIGHT);
+
+                        // Try to score the top card of the discard pile.  If it can be scored,
+                        // score move it to foundation and update the score
+                        if (CanBeScored())
+                        {
+                            this.score += 10;
+                        }
                     }
                     else
                     {
-                        // make the top card the selection unless
+                        // Make the top card the selection unless
                         // it is already selected, in which case, unselect it
                         List<Card> test = new List<Card>(
                             this.discard.GetRange(this.discard.Count - 1, 1)
@@ -317,9 +345,9 @@ namespace SolitaireGame
                         {
                             List<Card> cur_sel = this.discard.GetRange(this.discard.Count - 1, 1);
                             this.sel.Change(cur_sel, 7,
-                                Constants.DISCARD_XCOR,
-                                Constants.DECK_YCOR,
-                                Constants.CARD_HEIGHT);
+                                GameProperties.DISCARD_XCOR,
+                                GameProperties.DECK_YCOR,
+                                GameProperties.CARD_HEIGHT);
                         }
                     }
                 }
@@ -327,17 +355,14 @@ namespace SolitaireGame
             // If the click is not the deck or discard pile, check the foundations or table
             else
             {
-                // If the top part of the screen is clicked, AND there is a 
-                // selection currently active, check for click on foundations
-
-                // TODO if foundation clicked with no selection, select the top card (will
-                //      need to adjust Selection class sources
-                if (y < Constants.TABLE_START && this.sel.IsValid())
+                // If the top part of the screen is clicked, check for click on foundations
+                if (y < GameProperties.TABLE_START)
                 {
                     //  -1: invalid clicked
                     // 0-3: number of foundation, left-to-right
                     int fdNumClicked = CheckFoundationClick(x, y);
 
+                    // If a foundation was clicked, try to handle it
                     if (fdNumClicked != -1)
                     {
                         HandleFoundationClick(fdNumClicked);
@@ -380,11 +405,11 @@ namespace SolitaireGame
         /// <returns>True if inside the bounds of the deck was clicked, False otherwise</returns>        
         public bool DeckClicked(int x, int y)
         {
-            if (Constants.DECK_XCOR <= x && x <= Constants.DECK_XCOR + 
-                Constants.CARD_WIDTH)
+            if (GameProperties.DECK_XCOR <= x && x <= GameProperties.DECK_XCOR + 
+                GameProperties.CARD_WIDTH)
             {
-                if (y <= Constants.DECK_YCOR + Constants.CARD_HEIGHT && 
-                    Constants.DECK_YCOR <= y)
+                if (y <= GameProperties.DECK_YCOR + GameProperties.CARD_HEIGHT && 
+                    GameProperties.DECK_YCOR <= y)
                 {
                     return true;
                 }
@@ -402,11 +427,11 @@ namespace SolitaireGame
         /// False otherwise</returns> 
         public bool DiscardClicked(int x, int y)
         {
-            if (Constants.DISCARD_XCOR <= x && x <= Constants.DISCARD_XCOR + 
-                Constants.CARD_WIDTH)
+            if (GameProperties.DISCARD_XCOR <= x && x <= GameProperties.DISCARD_XCOR + 
+                GameProperties.CARD_WIDTH)
             {
-                if (y <= Constants.DECK_YCOR + Constants.CARD_HEIGHT && 
-                    Constants.DECK_YCOR <= y)
+                if (y <= GameProperties.DECK_YCOR + GameProperties.CARD_HEIGHT && 
+                    GameProperties.DECK_YCOR <= y)
                 {
                     return true;
                 }
@@ -426,12 +451,12 @@ namespace SolitaireGame
         /// is not valid</returns>
         public Tuple<int, int> CheckColumnClick(int x, int y)
         {
-            int sep = Constants.TABLE_CARD_SEPARATION;
-            int w = Constants.CARD_WIDTH;
-            int h = Constants.CARD_HEIGHT;            
-            int colSpace = (Constants.WINDOW_WIDTH / 7) - w;
+            int sep = GameProperties.TABLE_CARD_SEPARATION;
+            int w = GameProperties.CARD_WIDTH;
+            int h = GameProperties.CARD_HEIGHT;            
+            int colSpace = (GameProperties.WINDOW_WIDTH / 7) - w;
             int buf = -(colSpace / 2);
-            int start = Constants.TABLE_START;
+            int start = GameProperties.TABLE_START;
 
             for (int col = 0; col <= 6; col++)
             {
@@ -516,26 +541,33 @@ namespace SolitaireGame
 
                 if (validMove)
                 {
-                    // If selection is from discard, remove it from the pile
+                    // If selection is from discard, remove it from the pile and add 5 points
                     if (this.sel.Source == 7)
                     {
                         this.discard.Remove(this.sel.Cards[0]);
+                        this.score += 5;
                     }
-                    // Otherwise, the selection is from a column.  Remove it from the current
-                    // column and place it in the new column
+                    else if (this.sel.Source > 7)
+                    {
+                        this.foundations[this.sel.Source - 8].Pop();
+                        this.score = this.score < 15 ? 0 : this.score - 15;
+                    }
                     else
                     {
+                        // Otherwise, the selection is from a column.  Remove it from the current
+                        // column and place it in the new column
                         int cardsInSourceCol = this.board[this.sel.Source].Count;
                         int startIndex = cardsInSourceCol - this.sel.Size();
                         this.board[this.sel.Source].RemoveRange(startIndex, this.sel.Size());
 
                         // If the source column still has cards in it, and the last card is face
-                        // down, flip it face up
+                        // down, flip it face up and add 5 points
                         int cardsRemaining = this.board[this.sel.Source].Count;
                         if (cardsRemaining > 0 &&
                             !this.board[this.sel.Source][cardsRemaining - 1].Up)
                         {
                             this.board[this.sel.Source][cardsRemaining - 1].Flip();
+                            this.score += 5;
                         }
                     }
 
@@ -555,11 +587,11 @@ namespace SolitaireGame
 
                     if (clicked.Up)
                     {
-                        int w = Constants.CARD_WIDTH;
-                        int h = Constants.CARD_HEIGHT;
-                        int sep = Constants.TABLE_CARD_SEPARATION;
-                        int start = Constants.TABLE_START;
-                        int colSpace = (Constants.WINDOW_WIDTH / 7) - w;
+                        int w = GameProperties.CARD_WIDTH;
+                        int h = GameProperties.CARD_HEIGHT;
+                        int sep = GameProperties.TABLE_CARD_SEPARATION;
+                        int start = GameProperties.TABLE_START;
+                        int colSpace = (GameProperties.WINDOW_WIDTH / 7) - w;
                         int buf = -(colSpace / 2);
                         int colHeight = (count - 1) * sep + h;
 
@@ -573,7 +605,10 @@ namespace SolitaireGame
                         // card selected
                         if (doubleClick && count == 1 && clicked != null)
                         {
-                            AttemptToScore();
+                            if (CanBeScored())
+                            {
+                                this.score += 10;
+                            }
                         }
 
                     }
@@ -593,12 +628,12 @@ namespace SolitaireGame
         /// (left-to-right.  Returns -1 if no valid foundation was clicked.</returns>
         public int CheckFoundationClick(int x, int y)
         {
-            int w = Constants.CARD_WIDTH;
-            int h = Constants.CARD_HEIGHT;
-            int colSpace = (Constants.WINDOW_WIDTH / 7) - w;
+            int w = GameProperties.CARD_WIDTH;
+            int h = GameProperties.CARD_HEIGHT;
+            int colSpace = (GameProperties.WINDOW_WIDTH / 7) - w;
             int buf = -(colSpace / 2);
-            int top = Constants.DECK_YCOR;
-            int bottom = Constants.DECK_YCOR + h;
+            int top = GameProperties.DECK_YCOR;
+            int bottom = GameProperties.DECK_YCOR + h;
 
             for (int fd = 0; fd <= 3; fd++)
             {
@@ -628,63 +663,88 @@ namespace SolitaireGame
         {
             bool validMove = false;
 
-            // Selection's of more than one card can't be played into the foundation
-            if (this.sel.Size() == 1 && this.sel.IsValid())
+            // If the selection is already valid, try to play it into the foundation
+            if (this.sel.IsValid())
             {
-                Card selCard = this.sel.Cards[0];
-
-                if (this.foundations[fdNum].Count == 0)
+                // Selection's of more than one card can't be played into the foundation
+                if (this.sel.Size() == 1)
                 {
-                    if (selCard.Val == 1)
-                    {
-                        validMove = true;
-                    }
-                }
-                else
-                {
-                    Card fdCard = this.foundations[fdNum].Peek();
+                    Card selCard = this.sel.Cards[0];
 
-                    if (selCard.SameSuit(fdCard))
+                    if (this.foundations[fdNum].Count == 0)
                     {
-                        if (selCard.Val == fdCard.Val + 1)
+                        if (selCard.Val == 1)
                         {
                             validMove = true;
                         }
                     }
-                }
-
-                // If the attempted move is valid, remove the Card from wherever it currently
-                // lives and add it to the foundation it belongs in
-                if (validMove)
-                {
-                    if (this.sel.Source == 7)
-                    {
-                        this.discard.Remove(selCard);
-                    }
                     else
                     {
-                        this.board[this.sel.Source].Remove(selCard);
+                        Card fdCard = this.foundations[fdNum].Peek();
 
-                        // If column still has cards AND the last card isn't face up, flip it
-                        int size = this.board[this.sel.Source].Count;
-                        if (size > 0 && !this.board[this.sel.Source][size - 1].Up)
+                        if (selCard.SameSuit(fdCard))
                         {
-                            this.board[this.sel.Source][size - 1].Flip();
+                            if (selCard.Val == fdCard.Val + 1)
+                            {
+                                validMove = true;
+                            }
                         }
                     }
 
-                    this.foundations[fdNum].Push(selCard);
+                    // If the attempted move is valid, remove the Card from wherever it currently
+                    // lives and add it to the foundation it belongs in
+                    if (validMove)
+                    {
+                        if (this.sel.Source == 7)
+                        {
+                            this.discard.Remove(selCard);
+                        }
+                        else
+                        {
+                            this.board[this.sel.Source].Remove(selCard);
+
+                            // If column still has cards AND the last card isn't face up, flip it
+                            int size = this.board[this.sel.Source].Count;
+                            if (size > 0 && !this.board[this.sel.Source][size - 1].Up)
+                            {
+                                this.board[this.sel.Source][size - 1].Flip();
+                            }
+                        }
+
+                        this.foundations[fdNum].Push(selCard);
+                        this.score += 10;
+                    }
+
                     this.sel.Clear();
+                
                 }
             }
+            else
+            {
+                // The foundation was clicked, but a selection did not already exist, so
+                // select the top card of the current foundation
+                Card c = this.foundations[fdNum].Peek();
+                List<Card> toAdd = new List<Card> { c };
+
+                int w = GameProperties.CARD_WIDTH;
+                int h = GameProperties.CARD_HEIGHT;
+                int colSpace = (GameProperties.WINDOW_WIDTH / 7) - w;
+                int buf = -(colSpace / 2);
+
+                int xLoc = buf + (colSpace * (fdNum + 4)) + (w * ((fdNum + 4) - 1));
+                int yLoc = GameProperties.DECK_YCOR;
+
+                this.sel.Change(toAdd, fdNum + 8, xLoc, yLoc, h);
+            }
         }
+
 
         /// <summary>
         /// Attempts to score the current selection.  This method assumes it will only
         /// ever get called when the selection is one card (we can't attempt to score more
-        /// than one card).
+        /// than one card).  Returns true if the selection was scored, false otherwise.
         /// </summary>
-        public void AttemptToScore()
+        public bool CanBeScored()
         {
             Card selCard = this.sel.Cards[0];
 
@@ -694,7 +754,6 @@ namespace SolitaireGame
                 {
                     Card fCard = this.foundations[i].Peek();
 
-                    // TODO make subroutine out of this functonality?
                     if (selCard.SameSuit(fCard) && selCard.Val == fCard.Val + 1)
                     {
                         if (this.sel.Source == 7)
@@ -715,7 +774,8 @@ namespace SolitaireGame
 
                         this.foundations[i].Push(selCard);
                         this.sel.Clear();
-                        break;
+
+                        return true;
                     }
                 }
                 else
@@ -742,14 +802,36 @@ namespace SolitaireGame
 
                         this.foundations[i].Push(selCard);
                         this.sel.Clear();
-                        break;
+
+                        return true;
                     }
                 }
             }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if the game is over
+        /// </summary>
+        /// <returns><c>true</c>, if all cards are in a foundation, <c>false</c> otherwise.</returns>
+        public bool GameOver()
+        {
+            for (int i = 0; i < this.foundations.Count; i++)
+            {
+                Stack<Card> f = this.foundations[i];
+
+                // If the top card of any foundation isn't a king, the game isn't over
+                if (f.Count == 0 || f.Peek().Val != 13)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         // TODO write a method to attempt to auto finish the game
-        // TODO scoring?
         // TODO undo functionality?
     }
 }

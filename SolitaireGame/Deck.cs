@@ -18,7 +18,7 @@ namespace SolitaireGame
         {
             this.cards = new List<Card>();
 
-            foreach (string suit in Constants.VALID_SUITS_ARRAY)
+            foreach (string suit in GameProperties.VALID_SUITS_ARRAY)
             {
                 for (int i = 1; i < 14; i++)
                 {

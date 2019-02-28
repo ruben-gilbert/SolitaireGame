@@ -11,8 +11,8 @@ namespace SolitaireGame
 { 
     public class Card
     {
-        private string suit;
-        private int val;
+        private readonly string suit;
+        private readonly int val;
         private bool up;
         private Texture2D front;
         private Texture2D back;
@@ -20,13 +20,13 @@ namespace SolitaireGame
         /// <summary>
         /// Initializes a new instance of the <see cref="T:SolitaireGame.Card"/> class.
         /// </summary>
-        /// <param name="value">The Card's value.</param>
+        /// <param name="val">The Card's value.</param>
         /// <param name="suit">The Card's suit.</param>
         public Card(int val, string suit)
         {
             up = false;
 
-            if (!Constants.VALID_SUITS.Contains(suit))
+            if (!GameProperties.VALID_SUITS.Contains(suit))
                 throw new ArgumentException(String.Format("{0} is not a valid suit", "suit"));
             else
                 this.suit = suit;
@@ -113,7 +113,7 @@ namespace SolitaireGame
         /// <param name="c">Color of the texture (will generally be White)</param>
         public void Draw(SpriteBatch s, int x, int y, Color c)
         {                                                                                           
-            Rectangle r = new Rectangle(x, y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT);
+            Rectangle r = new Rectangle(x, y, GameProperties.CARD_WIDTH, GameProperties.CARD_HEIGHT);
 
             if (this.up)
                 s.Draw(this.front, r, c);

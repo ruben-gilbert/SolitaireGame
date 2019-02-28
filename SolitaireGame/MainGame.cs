@@ -27,12 +27,26 @@ namespace SolitaireGame
         {
             graphics = new GraphicsDeviceManager(this);
 
-            Constants.WINDOW_WIDTH = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-            Constants.WINDOW_HEIGHT = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
-            Constants.TABLE_START = Constants.WINDOW_HEIGHT / 3;
+            GameProperties.WINDOW_WIDTH = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+            GameProperties.WINDOW_HEIGHT = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
 
-            graphics.PreferredBackBufferWidth = Constants.WINDOW_WIDTH;
-            graphics.PreferredBackBufferHeight = Constants.WINDOW_HEIGHT;
+            // TODO assign starting window size based on monitor size
+            //Console.WriteLine(GameProperties.WINDOW_WIDTH + "x" + GameProperties.WINDOW_HEIGHT);
+            if (GameProperties.WINDOW_WIDTH > 1920 && GameProperties.WINDOW_WIDTH > 1080)
+            {
+                GameProperties.WINDOW_WIDTH = 1920;
+                GameProperties.WINDOW_HEIGHT = 1080;
+            } 
+            else if (GameProperties.WINDOW_WIDTH > 1280 && GameProperties.WINDOW_HEIGHT > 720)
+            {
+                GameProperties.WINDOW_WIDTH = 1280;
+                GameProperties.WINDOW_HEIGHT = 720;
+            }
+
+            GameProperties.TABLE_START = GameProperties.WINDOW_HEIGHT / 3;
+
+            graphics.PreferredBackBufferWidth = GameProperties.WINDOW_WIDTH;
+            graphics.PreferredBackBufferHeight = GameProperties.WINDOW_HEIGHT;
             graphics.ApplyChanges();
 
             Content.RootDirectory = "Content";
@@ -94,43 +108,53 @@ namespace SolitaireGame
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+            if (!this.backendGame.GameOver())
             {
-                Exit();
-            } 
-            else if (Keyboard.GetState().IsKeyDown(Keys.R))
-            {
-                NewGame();
-            }
-
-            // Get the current state of the mouse.  If it's currently pressed
-            // and it used to be released, it must be a "click" we should
-            // attempt to handle
-            this.curState = Mouse.GetState();
-
-            this.clickTimer += gameTime.ElapsedGameTime.TotalMilliseconds;
-
-            if (this.curState.LeftButton == ButtonState.Pressed &&
-                this.oldState.LeftButton == ButtonState.Released)
-            {
-                if (this.clickTimer < timerDelay)
+                if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                 {
-                    // Double Click Detected
-                    this.backendGame.MouseClicked(curState.X, curState.Y, true);
+                    Exit();
                 }
-                else
+                else if (Keyboard.GetState().IsKeyDown(Keys.R))
                 {
-                    // Single click detected
-                    this.backendGame.MouseClicked(curState.X, curState.Y, false);
+                    NewGame();
                 }
 
-                this.clickTimer = 0;
+                // Get the current state of the mouse.  If it's currently pressed
+                // and it used to be released, it must be a "click" we should
+                // attempt to handle
+                this.curState = Mouse.GetState();
 
+                this.clickTimer += gameTime.ElapsedGameTime.TotalMilliseconds;
+
+                if (this.curState.LeftButton == ButtonState.Pressed &&
+                    this.oldState.LeftButton == ButtonState.Released)
+                {
+                    if (this.clickTimer < timerDelay)
+                    {
+                        // Double Click Detected
+                        this.backendGame.MouseClicked(curState.X, curState.Y, true);
+                    }
+                    else
+                    {
+                        // Single click detected
+                        this.backendGame.MouseClicked(curState.X, curState.Y, false);
+                    }
+
+                    this.clickTimer = 0;
+
+                }
+
+                this.oldState = curState;
+
+                base.Update(gameTime);
             }
+            else
+            {
+                // TODO should display game over or something on screen (Sprites and Fonts)
+                Console.WriteLine("Game over -- Final Score: " + this.backendGame.GetScore());
 
-            this.oldState = curState;
-
-            base.Update(gameTime);
+                // TODO high scores file?
+            }
         }
 
         /// <summary>

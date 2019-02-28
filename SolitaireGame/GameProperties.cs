@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace SolitaireGame
 {
-    public static class Constants
+    public static class GameProperties
     {
         // use a HashSet since we want to check containment quickly, can build it from an array
         public readonly static string[] VALID_SUITS_ARRAY = { "H", "D", "C", "S" };
@@ -30,5 +30,7 @@ namespace SolitaireGame
         //public readonly static int TABLE_START = WINDOW_HEIGHT / 3;
         public static int TABLE_START;
         public readonly static int TABLE_CARD_SEPARATION = 30;
+
+        public static int DEAL_MODE = 1;
     }
 }
