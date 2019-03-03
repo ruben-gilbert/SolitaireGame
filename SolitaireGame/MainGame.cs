@@ -18,10 +18,13 @@ namespace SolitaireGame
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         BackendGame backendGame;
+        private SpriteFont font;
         private MouseState curState;
         private MouseState oldState;
         private double clickTimer;
-        const double timerDelay = 500;
+        private const double timerDelay = 500;
+        private bool gameOver;
+        private bool writtenToFile;
         
         public MainGame()
         {
@@ -30,8 +33,6 @@ namespace SolitaireGame
             GameProperties.WINDOW_WIDTH = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
             GameProperties.WINDOW_HEIGHT = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
 
-            // TODO assign starting window size based on monitor size
-            //Console.WriteLine(GameProperties.WINDOW_WIDTH + "x" + GameProperties.WINDOW_HEIGHT);
             if (GameProperties.WINDOW_WIDTH > 1920 && GameProperties.WINDOW_WIDTH > 1080)
             {
                 GameProperties.WINDOW_WIDTH = 1920;
@@ -63,6 +64,7 @@ namespace SolitaireGame
                 // add new game button
                 // add cards per deal option
                 // main menu (number of cards to draw, instructions, etc)  -- or no?
+                // add card color selection (and unload the card backs of other color?)
 
             this.backendGame = new BackendGame();
 
@@ -70,6 +72,8 @@ namespace SolitaireGame
             this.curState = Mouse.GetState();
             this.oldState = Mouse.GetState();
             this.clickTimer = 0;
+            this.gameOver = false;
+            this.writtenToFile = false;
 
             base.Initialize();
         }
@@ -80,12 +84,15 @@ namespace SolitaireGame
         protected override void LoadContent()
         {
             // Create a new SpriteBatch, which can be used to draw textures.
-            spriteBatch = new SpriteBatch(GraphicsDevice);
+            this.spriteBatch = new SpriteBatch(GraphicsDevice);
+
+            // Create the SpriteFont object
+            this.font = Content.Load<SpriteFont>("Victory");
 
             // Load the image textures for each Card
             foreach (Card c in this.backendGame.GetDeck().GetCards())
             {
-                c.LoadImages(this, "purple");
+                c.LoadImages(this, GameProperties.CARD_COLOR);
             }
 
             // Build the board now that textures have been loaded
@@ -108,17 +115,18 @@ namespace SolitaireGame
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+            {
+                Exit();
+            }
+            else if (Keyboard.GetState().IsKeyDown(Keys.R))
+            {
+                NewGame();
+            }
+
             if (!this.backendGame.GameOver())
             {
-                if (Keyboard.GetState().IsKeyDown(Keys.Escape))
-                {
-                    Exit();
-                }
-                else if (Keyboard.GetState().IsKeyDown(Keys.R))
-                {
-                    NewGame();
-                }
-
                 // Get the current state of the mouse.  If it's currently pressed
                 // and it used to be released, it must be a "click" we should
                 // attempt to handle
@@ -150,10 +158,7 @@ namespace SolitaireGame
             }
             else
             {
-                // TODO should display game over or something on screen (Sprites and Fonts)
-                Console.WriteLine("Game over -- Final Score: " + this.backendGame.GetScore());
-
-                // TODO high scores file?
+                this.gameOver = true;
             }
         }
 
@@ -167,6 +172,26 @@ namespace SolitaireGame
 
             spriteBatch.Begin();
             this.backendGame.DrawGame(GraphicsDevice, this.spriteBatch);
+
+            if (this.gameOver)
+            {
+                Vector2 vSize = font.MeasureString("VICTORY!");
+                Vector2 sSize = font.MeasureString("Final Score: " + this.backendGame.GetScore());
+                int x = GameProperties.WINDOW_WIDTH / 2;
+                int y = GameProperties.WINDOW_HEIGHT / 2;
+
+                this.spriteBatch.DrawString(font, 
+                    "VICTORY!", 
+                    new Vector2(x - (vSize.X / 2), y), 
+                    Color.Black);
+                this.spriteBatch.DrawString(font,
+                    "Final Score: " + this.backendGame.GetScore(),
+                    new Vector2(x - (sSize.X / 2), y + vSize.Y),
+                    Color.Black);
+
+                // TODO display the top scores from the file
+                // TODO write the current game's score to file and set variable (don't write if var set)
+            }
             spriteBatch.End();
 
             base.Draw(gameTime);
@@ -178,11 +203,13 @@ namespace SolitaireGame
         protected void NewGame()
         {
             this.backendGame.NewGame();
+            this.gameOver = false;
+            this.writtenToFile = false;
 
             // Load the image textures for each Card
             foreach (Card c in this.backendGame.GetDeck().GetCards())
             {
-                c.LoadImages(this, "purple");
+                c.LoadImages(this, GameProperties.CARD_COLOR);
             }
 
             // Build the board now that textures have been loaded

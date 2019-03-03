@@ -26,11 +26,13 @@ namespace SolitaireGame
 
         public readonly static int DISCARD_XCOR = DECK_XCOR + CARD_WIDTH + 30;
         public readonly static int DISCARD_YCOR = DECK_YCOR;
+        public readonly static int DISCARD_SEPARATION = 20;
 
         //public readonly static int TABLE_START = WINDOW_HEIGHT / 3;
         public static int TABLE_START;
         public readonly static int TABLE_CARD_SEPARATION = 30;
 
-        public static int DEAL_MODE = 1;
+        public static int DEAL_MODE = 3;
+        public static string CARD_COLOR = "purple";
     }
 }

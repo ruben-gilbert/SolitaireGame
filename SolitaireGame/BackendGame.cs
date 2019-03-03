@@ -56,8 +56,7 @@ namespace SolitaireGame
 
             // Init score
             this.score = 0;
-
-            // TODO multiple card deals   
+ 
         }
 
         /// <summary>
@@ -189,8 +188,33 @@ namespace SolitaireGame
             }
             else
             {
-                Card c2 = this.discard[this.discard.Count - 1];
-                c2.Draw(s, discardX, discardY, Color.White);
+                if (GameProperties.DEAL_MODE == 1)
+                {
+                    Card c2 = this.discard[this.discard.Count - 1];
+                    c2.Draw(s, discardX, discardY, Color.White);
+                }
+                else if (GameProperties.DEAL_MODE == 3)
+                {
+                    List<Card> discardToShow;
+                    if (this.discard.Count < 3)
+                    {
+                        discardToShow = this.discard.GetRange(0, this.discard.Count);
+                    }
+                    else
+                    {
+                        discardToShow = this.discard.GetRange(this.discard.Count - 3, 3);
+                    }
+
+                    for (int i = 0; i < discardToShow.Count; i++)
+                    {
+                        Card c2 = discardToShow[i];
+                        c2.Draw(s,
+                            discardX + (GameProperties.DISCARD_SEPARATION * i),
+                            discardY,
+                            Color.White);
+                    }
+                }
+                
             }
 
             // Draw Tableus (7 columns)
@@ -302,8 +326,10 @@ namespace SolitaireGame
                     List<Card> drawn = this.d.Deal(GameProperties.DEAL_MODE);
 
                     foreach (Card c in drawn)
+                    {
                         c.Flip();
-
+                    }
+                        
                     this.discard.AddRange(drawn);
                 }
 
@@ -313,12 +339,16 @@ namespace SolitaireGame
             {
                 if (this.discard.Count > 0)
                 {
+                    // It was a valid click, but which card should we select?
+                    int pos = this.discard.Count >= 3 ? 2 : (this.discard.Count == 2 ? 1 : 0);
+
                     if (doubleClick)
                     {
                         this.sel.Clear();
                         List<Card> cur_sel = this.discard.GetRange(this.discard.Count - 1, 1);
+
                         this.sel.Change(cur_sel, 7,
-                            GameProperties.DISCARD_XCOR,
+                            GameProperties.DISCARD_XCOR + (pos * GameProperties.DISCARD_SEPARATION),
                             GameProperties.DECK_YCOR,
                             GameProperties.CARD_HEIGHT);
 
@@ -345,7 +375,7 @@ namespace SolitaireGame
                         {
                             List<Card> cur_sel = this.discard.GetRange(this.discard.Count - 1, 1);
                             this.sel.Change(cur_sel, 7,
-                                GameProperties.DISCARD_XCOR,
+                                GameProperties.DISCARD_XCOR + (pos * GameProperties.DISCARD_SEPARATION),
                                 GameProperties.DECK_YCOR,
                                 GameProperties.CARD_HEIGHT);
                         }
@@ -427,17 +457,39 @@ namespace SolitaireGame
         /// False otherwise</returns> 
         public bool DiscardClicked(int x, int y)
         {
-            if (GameProperties.DISCARD_XCOR <= x && x <= GameProperties.DISCARD_XCOR + 
-                GameProperties.CARD_WIDTH)
+            // Can handle both single card mode AND three card mode with less than 2 cards
+            if (GameProperties.DEAL_MODE == 1 || this.discard.Count < 2)
             {
-                if (y <= GameProperties.DECK_YCOR + GameProperties.CARD_HEIGHT && 
-                    GameProperties.DECK_YCOR <= y)
+                if (GameProperties.DISCARD_XCOR <= x && 
+                    x <= GameProperties.DISCARD_XCOR + GameProperties.CARD_WIDTH)
                 {
-                    return true;
+                    if (y <= GameProperties.DECK_YCOR + GameProperties.CARD_HEIGHT &&
+                        GameProperties.DECK_YCOR <= y)
+                    {
+                        return true;
+                    }
+                }
+            }
+            else if (GameProperties.DEAL_MODE == 3)
+            {
+                // Do we need to offset by 1 or 2 cards?
+                int position = this.discard.Count >= 3 ? 2 : 1;
+
+                int cardX = GameProperties.DISCARD_XCOR + 
+                            (position * GameProperties.DISCARD_SEPARATION);
+
+                if (cardX <= x && x <= cardX + GameProperties.CARD_WIDTH)
+                {
+                    if (y <= GameProperties.DECK_YCOR + GameProperties.CARD_HEIGHT &&
+                        GameProperties.DECK_YCOR <= y)
+                    {
+                        return true;
+                    }
                 }
             }
 
             return false;
+
         }
 
         /// <summary>

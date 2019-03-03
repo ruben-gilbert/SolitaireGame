@@ -101,6 +101,11 @@ namespace SolitaireGame
         /// <returns>A List of Cards of size num</returns>
         public List<Card> Deal(int num)
         {
+            if (this.cards.Count < num)
+            {
+                num = this.cards.Count;
+            }
+
             List<Card> c = this.cards.GetRange(0, num);
             this.cards.RemoveRange(0, num);
             return c;
