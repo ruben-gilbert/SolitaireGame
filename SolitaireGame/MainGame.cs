@@ -4,6 +4,7 @@
 // 2019
 
 using System;
+using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -22,17 +23,33 @@ namespace SolitaireGame
         private MouseState curState;
         private MouseState oldState;
         private double clickTimer;
-        private const double timerDelay = 500;
+        private const double timerDelay = 300;
         private bool gameOver;
         private bool writtenToFile;
         
         public MainGame()
         {
             graphics = new GraphicsDeviceManager(this);
-
+            
             GameProperties.WINDOW_WIDTH = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
             GameProperties.WINDOW_HEIGHT = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
 
+            // TODO make card sizes dynamic based on window size?
+            // TODO make window size dynamic based on height of screen
+            // TODO make UI location dynamic based on window size?
+
+            if (GameProperties.WINDOW_HEIGHT > 1440)
+            {
+                GameProperties.WINDOW_WIDTH = 1280;
+                GameProperties.WINDOW_HEIGHT = 1280;
+            }
+            else if (GameProperties.WINDOW_HEIGHT > 720)
+            {
+                GameProperties.WINDOW_WIDTH = 1000;
+                GameProperties.WINDOW_HEIGHT = 1000;
+            }
+
+            /*
             if (GameProperties.WINDOW_WIDTH > 1920 && GameProperties.WINDOW_WIDTH > 1080)
             {
                 GameProperties.WINDOW_WIDTH = 1920;
@@ -43,6 +60,7 @@ namespace SolitaireGame
                 GameProperties.WINDOW_WIDTH = 1280;
                 GameProperties.WINDOW_HEIGHT = 720;
             }
+            */
 
             GameProperties.TABLE_START = GameProperties.WINDOW_HEIGHT / 3;
 
@@ -150,16 +168,25 @@ namespace SolitaireGame
 
                     this.clickTimer = 0;
 
+                } 
+                else if (this.curState.RightButton == ButtonState.Pressed &&
+                        this.oldState.RightButton == ButtonState.Released)
+                {
+                    if (this.backendGame.CanAutoComplete())
+                    {
+                        Thread t = new Thread(this.backendGame.AutoComplete);
+                        t.Start();
+                    }
                 }
 
                 this.oldState = curState;
-
-                base.Update(gameTime);
             }
             else
             {
                 this.gameOver = true;
             }
+
+            base.Update(gameTime);
         }
 
         /// <summary>

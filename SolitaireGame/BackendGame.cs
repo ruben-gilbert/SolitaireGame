@@ -864,6 +864,78 @@ namespace SolitaireGame
         }
 
         /// <summary>
+        /// Checks to see if the game can be auto-won.  Requires that the deck be empty,
+        /// the discard pile be empty, and all cards in play be face-up.
+        /// </summary>
+        /// <returns>True if the game can be auto completed, False otherwise</returns>
+        public bool CanAutoComplete()
+        {
+            // If there are no cards in the deck or discard pile
+            if (this.d.Size() == 0 && this.discard.Count == 0)
+            {
+                // Quickly check if there are any face-down cards still in play
+                for (int i = 0; i < this.board.Count; i++)
+                {
+                    // If the top card in any column is face down, we can't complete
+                    if (this.board[i].Count > 0 && !this.board[i][0].Up)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Auto finishes the game.  
+        /// </summary>
+        public void AutoComplete()
+        {
+            while (!GameOver())
+            {
+                // While the game isn't over, check if the bottom card in each column
+                // can be scored.  If it can, score it and count the points
+                for (int i = 0; i < this.board.Count; i++)
+                {
+                    int cardsInCol = this.board[i].Count;
+
+                    if (cardsInCol > 0)
+                    {
+                        List<Card> toAdd = this.board[i].GetRange(cardsInCol - 1, 1);
+
+                        int w = GameProperties.CARD_WIDTH;
+                        int h = GameProperties.CARD_HEIGHT;
+                        int sep = GameProperties.TABLE_CARD_SEPARATION;
+                        int start = GameProperties.TABLE_START;
+                        int colSpace = (GameProperties.WINDOW_WIDTH / 7) - w;
+                        int buf = -(colSpace / 2);
+                        int colHeight = (cardsInCol - 1) * sep + h;
+
+                        int selX = buf + (colSpace * (i + 1)) + (w * i);
+                        int selY = start + (sep * (cardsInCol - 1));
+
+                        this.sel.Change(toAdd, i, selX, selY, h);
+
+                        // Sleep for 0.2 seconds so player can view the animation
+                        System.Threading.Thread.Sleep(200);
+
+                        if (CanBeScored())
+                        {
+                            this.score += 10;
+                        }
+                        else
+                        {
+                            this.sel.Clear();
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Checks if the game is over
         /// </summary>
         /// <returns><c>true</c>, if all cards are in a foundation, <c>false</c> otherwise.</returns>
@@ -883,7 +955,6 @@ namespace SolitaireGame
             return true;
         }
 
-        // TODO write a method to attempt to auto finish the game
         // TODO undo functionality?
     }
 }
