@@ -4,6 +4,7 @@
 // 2019
 
 using System;
+using System.IO;
 using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -25,6 +26,7 @@ namespace SolitaireGame
         private double clickTimer;
         private const double timerDelay = 300;
         private bool gameOver;
+        private string endTime;
         private bool writtenToFile;
         
         public MainGame()
@@ -184,6 +186,7 @@ namespace SolitaireGame
             else
             {
                 this.gameOver = true;
+                this.endTime = DateTime.Now.ToShortDateString();
             }
 
             base.Update(gameTime);
@@ -229,6 +232,13 @@ namespace SolitaireGame
         /// </summary>
         protected void NewGame()
         {
+            // If the current game is won AND we haven't written to the file yet, check if 
+            // we should write the score to the high score file
+            if (!this.writtenToFile && this.gameOver)
+            {
+                this.WriteScoreToFile();
+            }
+
             this.backendGame.NewGame();
             this.gameOver = false;
             this.writtenToFile = false;
@@ -241,6 +251,48 @@ namespace SolitaireGame
 
             // Build the board now that textures have been loaded
             this.backendGame.BuildBoard();
+        }
+
+        /// <summary>
+        /// Writes the top 5 scores to the highscores.txt file.  If there are less than 5
+        /// scores, all scores are re-appended.  If there are 5 scores, determines if the current 
+        /// score is a new top 5 score, and then appends in the top 5 scores.
+        /// </summary>
+        protected void WriteScoreToFile()
+        {
+            string path = "./highscores.txt";
+
+            if (!File.Exists(path))
+            {
+                File.Create(path).Dispose();
+                File.WriteAllText(path, this.backendGame.GetScore() + "," + this.endTime);
+            }
+            else
+            {
+                File.AppendAllText(path,
+                    this.backendGame.GetScore() + "," + this.endTime + Environment.NewLine);
+            }
+
+            string readText = File.ReadAllText(path);
+            Console.WriteLine(readText);
+
+            this.writtenToFile = true;
+
+            //TODO Score objects(?) and write back in sorted order the top 5
+
+
+        }
+
+        protected override void OnExiting(Object sender, EventArgs args)
+        {
+            // If the current game is won AND we haven't written to the file yet, check if 
+            // we should write the score to the high score file
+            if (!this.writtenToFile && this.gameOver)
+            {
+                this.WriteScoreToFile();
+            }
+
+            base.OnExiting(sender, args);
         }
     }
 }
