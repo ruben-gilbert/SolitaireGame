@@ -44,6 +44,7 @@
   <ItemGroup>
     <Compile Include="BackendGame.cs" />
     <Compile Include="Card.cs" />
+    <Compile Include="HighScore.cs" />
     <Compile Include="GameProperties.cs" />
     <Compile Include="Deck.cs" />
     <Compile Include="MainGame.cs" />

@@ -5,10 +5,13 @@
 
 using System;
 using System.IO;
+using System.Collections;
 using System.Threading;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+
 
 namespace SolitaireGame
 {
@@ -85,6 +88,7 @@ namespace SolitaireGame
                 // add cards per deal option
                 // main menu (number of cards to draw, instructions, etc)  -- or no?
                 // add card color selection (and unload the card backs of other color?)
+                // button to show top scores?
 
             this.backendGame = new BackendGame();
 
@@ -219,8 +223,7 @@ namespace SolitaireGame
                     new Vector2(x - (sSize.X / 2), y + vSize.Y),
                     Color.Black);
 
-                // TODO display the top scores from the file
-                // TODO write the current game's score to file and set variable (don't write if var set)
+                // TODO display the top scores from the file after winning a game?  Or menu option?
             }
             spriteBatch.End();
 
@@ -262,31 +265,51 @@ namespace SolitaireGame
         {
             string path = "./highscores.txt";
 
+            List<HighScore> scores = new List<HighScore>();
+
+            // Create the file if it doesn't exist
             if (!File.Exists(path))
             {
                 File.Create(path).Dispose();
-                File.WriteAllText(path, this.backendGame.GetScore() + "," + this.endTime);
-            }
-            else
-            {
-                File.AppendAllText(path,
-                    this.backendGame.GetScore() + "," + this.endTime + Environment.NewLine);
             }
 
-            string readText = File.ReadAllText(path);
-            Console.WriteLine(readText);
+            // Read in all the high scores from the file
+            using(StreamReader r = new StreamReader(path, true))
+            {
+                while (!r.EndOfStream)
+                {
+                    string line = r.ReadLine();
+                    string[] elements = line.Split(',');
+
+                    int s = Int32.Parse(elements[0]);
+                    string date = elements[1];
+
+                    scores.Add(new HighScore(s, date));
+                }
+            }
+
+            // Add the current score to the list of high scores and sort them (and reverse order)
+            scores.Add(new HighScore(this.backendGame.GetScore(), this.endTime));
+            scores.Sort();
+            scores.Reverse();
+
+            // If there are more than 5 scores, cut off any but the top 5
+            if (scores.Count > 5)
+            {
+                scores = scores.GetRange(0, 5);
+            }
+
+            File.WriteAllLines(path, 
+                Array.ConvertAll<HighScore, string>(scores.ToArray(), HighScore.ConvertHighScoreToString));
 
             this.writtenToFile = true;
-
-            //TODO Score objects(?) and write back in sorted order the top 5
-
 
         }
 
         protected override void OnExiting(Object sender, EventArgs args)
         {
             // If the current game is won AND we haven't written to the file yet, check if 
-            // we should write the score to the high score file
+            // we should write the score to the high score file before exiting
             if (!this.writtenToFile && this.gameOver)
             {
                 this.WriteScoreToFile();
