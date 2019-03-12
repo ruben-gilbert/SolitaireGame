@@ -27,7 +27,7 @@ namespace SolitaireGame
         private MouseState curState;
         private MouseState oldState;
         private double clickTimer;
-        private const double timerDelay = 300;
+        private const double clickDelay = 300;
         private bool gameOver;
         private string endTime;
         private bool writtenToFile;
@@ -161,7 +161,7 @@ namespace SolitaireGame
                 if (this.curState.LeftButton == ButtonState.Pressed &&
                     this.oldState.LeftButton == ButtonState.Released)
                 {
-                    if (this.clickTimer < timerDelay)
+                    if (this.clickTimer < clickDelay)
                     {
                         // Double Click Detected
                         this.backendGame.MouseClicked(curState.X, curState.Y, true);

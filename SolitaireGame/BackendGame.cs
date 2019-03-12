@@ -956,5 +956,6 @@ namespace SolitaireGame
         }
 
         // TODO undo functionality?
+
     }
 }
