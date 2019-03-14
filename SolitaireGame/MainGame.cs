@@ -43,6 +43,7 @@ namespace SolitaireGame
             // TODO make window size dynamic based on height of screen
             // TODO make UI location dynamic based on window size?
 
+            /*
             if (GameProperties.WINDOW_HEIGHT > 1440)
             {
                 GameProperties.WINDOW_WIDTH = 1280;
@@ -54,7 +55,7 @@ namespace SolitaireGame
                 GameProperties.WINDOW_HEIGHT = 1000;
             }
 
-            /*
+
             if (GameProperties.WINDOW_WIDTH > 1920 && GameProperties.WINDOW_WIDTH > 1080)
             {
                 GameProperties.WINDOW_WIDTH = 1920;
