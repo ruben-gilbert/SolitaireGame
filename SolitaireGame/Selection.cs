@@ -3,13 +3,24 @@
 // 2019
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace SolitaireGame
 {
-    public class Selection
+    public class Selection : CardZone
     {
+        public Selection(int x, int y, int xSep, int ySep, GraphicsDevice g) :
+            base(x, y, xSep, ySep, g)
+        {
+
+        }
+    }
+}
+
+    /*
         private List<Card> cards;
         private bool valid;
         private int source;
@@ -160,3 +171,4 @@ namespace SolitaireGame
         }
     }
 }
+*/

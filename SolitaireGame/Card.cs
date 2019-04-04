@@ -11,9 +11,14 @@ namespace SolitaireGame
 { 
     public class Card
     {
+        private int x;
+        private int y;
+        private int height;
+        private int width;
         private readonly string suit;
         private readonly int val;
-        private bool up;
+        private bool isUp;
+        private bool isNested;
         private Texture2D front;
         private Texture2D back;
 
@@ -24,7 +29,10 @@ namespace SolitaireGame
         /// <param name="suit">The Card's suit.</param>
         public Card(int val, string suit)
         {
-            up = false;
+            this.isUp = false;
+            this.isNested = true;
+            this.width = GameProperties.CARD_WIDTH;
+            this.height = GameProperties.CARD_HEIGHT;
 
             if (!GameProperties.VALID_SUITS.Contains(suit))
                 throw new ArgumentException(String.Format("{0} is not a valid suit", "suit"));
@@ -37,22 +45,16 @@ namespace SolitaireGame
                 this.val = val;
         }
 
-        /// <summary>
-        /// Gets the value of this Card.
-        /// </summary>
-        /// <value>NULL</value>
-        public int Val
-        {
-            get { return this.val; }
-        }
+        // -----------------------------------------------------------------------------------------
+        // Getters / Setters
 
         /// <summary>
-        /// Gets the suit of this Card.
+        /// Gets the Texture of the back of this Card.
         /// </summary>
-        /// <value>NULL</value>
-        public string Suit
+        /// <value>The back Texture.</value>
+        public Texture2D Back
         {
-            get { return this.suit; }
+            get { return this.back; }
         }
 
         /// <summary>
@@ -65,21 +67,97 @@ namespace SolitaireGame
         }
 
         /// <summary>
-        /// Gets the Texture of the back of this Card.
+        /// Gets or sets the height of this Card.
         /// </summary>
-        /// <value>The back Texture.</value>
-        public Texture2D Back
+        /// <value>The new height value.</value>
+        public int Height
         {
-            get { return this.back; }
+            get { return this.height; }
+            set { this.height = value; }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether this <see cref="T:SolitaireGame.Card"/> is nested.
+        /// </summary>
+        /// <value><c>true</c> if the card is nested; otherwise, <c>false</c>.</value>
+        public bool IsNested
+        {
+            get { return this.isNested; }
         }
 
         /// <summary>
         /// Gets a value indicating whether this <see cref="T:SolitaireGame.Card"/> is up.
         /// </summary>
         /// <value><c>true</c> if up; otherwise, <c>false</c>.</value>
-        public bool Up
+        public bool IsUp
         {
-            get { return this.up; }
+            get { return this.isUp; }
+        }
+
+        /// <summary>
+        /// Gets the suit of this Card.
+        /// </summary>
+        /// <value>NULL</value>
+        public string Suit
+        {
+            get { return this.suit; }
+        }
+
+        /// <summary>
+        /// Gets the value of this Card.
+        /// </summary>
+        /// <value>NULL</value>
+        public int Val
+        {
+            get { return this.val; }
+        }
+
+        /// <summary>
+        /// Gets or sets the width of this card.
+        /// </summary>
+        /// <value>The new width value.</value>
+        public int Width
+        {
+            get { return this.width; }
+            set { this.width = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the x coordinate of this Card.
+        /// </summary>
+        /// <value>The new x value</value>
+        public int X
+        {
+            get { return this.x; }
+            set { this.x = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the y coordinate of this Card.
+        /// </summary>
+        /// <value>The new y value</value>
+        public int Y
+        {
+            get { return this.y; }
+            set { this.y = value; }
+        }
+
+        // -----------------------------------------------------------------------------------------
+        // Methods
+
+        /// <summary>
+        /// Card objects draw themselves
+        /// </summary>
+        /// <param name="s">SpriteBatch can draw 2D textures</param>
+        /// <param name="c">Color of the texture (will generally be White)</param>
+        public void Draw(SpriteBatch s, Color c)
+        {
+            Rectangle r = new Rectangle(this.x, this.y, this.width, this.height);
+
+            if (this.isUp)
+                s.Draw(this.front, r, c);
+            else
+                s.Draw(this.back, r, c);
         }
 
         /// <summary>
@@ -87,7 +165,56 @@ namespace SolitaireGame
         /// </summary>
         public void Flip()
         {
-            this.up = !this.up;
+            this.isUp = !this.isUp;
+        }
+
+        /// <summary>
+        /// Checks if this Card was hit by a click (x, y coordinate)
+        /// </summary>
+        /// <returns><c>true</c>, if Card was clicked, <c>false</c> otherwise.</returns>
+        /// <param name="clickX">X coordinate of click</param>
+        /// <param name="clickY">Y coordinate of click</param>
+        /// <param name="separation">Separation between stacked cards</param>
+        public bool IsClicked(int clickX, int clickY, int xSep, int ySep)
+        {
+            // If the card is nested, only allow a subsection of it to be clicked
+            if (this.IsNested)
+            {
+                return (this.x <= clickX && clickX <= this.x + xSep)
+                    && (this.y <= clickY && clickY <= this.y + ySep);
+            }
+            else
+            {
+                return (this.x <= clickX && clickX <= this.x + this.width)
+                    && (this.y <= clickY && clickY <= this.y + this.height);
+            }
+        }
+
+        /// <summary>
+        /// Checks if this card and some other card are opposite suits
+        /// </summary>
+        /// <returns><c>true</c>, if the suits are opposite, <c>false</c> otherwise.</returns>
+        /// <param name="other">Some other Card object</param>
+        public bool IsOppositeSuit(Card other)
+        {
+            if (this.suit.Equals("H") || this.suit.Equals("D"))
+            {
+                return other.Suit.Equals("S") || other.Suit.Equals("C");
+            }
+            else
+            {
+                return other.Suit.Equals("H") || other.Suit.Equals("D");
+            }
+        }
+
+        /// <summary>
+        /// Compares the suit of this Card with some other Card.
+        /// </summary>
+        /// <param name="other">Some other Card object</param>
+        /// <returns>true if the suits are the same, false otherwise</returns>
+        public bool IsSameSuit(Card other)
+        {
+            return this.suit.Equals(other.Suit);
         }
 
         /// <summary>
@@ -98,54 +225,34 @@ namespace SolitaireGame
         /// </summary>
         /// <param name="game">The MainGame object this Card is attached to</param>
         /// <param name="color">The color of the card-back</param>
-        public void LoadImages(MainGame game, string color)
+        public void LoadImage(MainGame game, string color)
         {
             this.front = game.Content.Load<Texture2D>("images/" + this.ToString());
             this.back = game.Content.Load<Texture2D>("images/back_" + color);
         }
 
         /// <summary>
-        /// Card objects draw themselves
+        /// Makes the card face down
         /// </summary>
-        /// <param name="s">SpriteBatch can draw 2D textures</param>
-        /// <param name="x">X-coordinate of this Card</param>
-        /// <param name="y">Y-coordinate of this Card</param>
-        /// <param name="c">Color of the texture (will generally be White)</param>
-        public void Draw(SpriteBatch s, int x, int y, Color c)
-        {                                                                                           
-            Rectangle r = new Rectangle(x, y, GameProperties.CARD_WIDTH, GameProperties.CARD_HEIGHT);
-
-            if (this.up)
-                s.Draw(this.front, r, c);
-            else
-                s.Draw(this.back, r, c);
+        public void MakeFaceDown()
+        {
+            this.isUp = false;
         }
 
         /// <summary>
-        /// Compares the suit of this Card with some other Card.
+        /// Makes the card face up.
         /// </summary>
-        /// <param name="other">Some other Card object</param>
-        /// <returns>true if the suits are the same, false otherwise</returns>
-        public bool SameSuit(Card other)
+        public void MakeFaceUp()
         {
-            return this.suit.Equals(other.Suit);
+            this.isUp = true;
         }
 
         /// <summary>
-        /// Checks if this card and some other card are opposite suits
+        /// Nest this Card
         /// </summary>
-        /// <returns><c>true</c>, if the suits are opposite, <c>false</c> otherwise.</returns>
-        /// <param name="other">Some other Card object</param>
-        public bool OppositeSuits(Card other)
+        public void Nest()
         {
-            if (this.suit.Equals("H") || this.suit.Equals("D"))
-            {
-                return other.Suit.Equals("S") || other.Suit.Equals("C");
-            }
-            else
-            {
-                return other.Suit.Equals("H") || other.Suit.Equals("D");
-            }
+            this.isNested = true;
         }
 
         /// <summary>
@@ -167,6 +274,14 @@ namespace SolitaireGame
                 default:
                     return this.val + this.suit;
             }
+        }
+
+        /// <summary>
+        /// Unnest this card
+        /// </summary>
+        public void UnNest()
+        {
+            this.isNested = false;
         }
     }
 }

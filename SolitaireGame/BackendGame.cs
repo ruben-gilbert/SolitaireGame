@@ -14,6 +14,94 @@ namespace SolitaireGame
 
     public class BackendGame
     {
+        private Deck deck;
+        private Discard discard;
+        private Selection selection;
+        private List<Foundation> foundations;
+        private List<Tableau> tableaus;
+        private List<CardZone> board;
+        private int score;
+
+        public BackendGame(GraphicsDevice g, MainGame game)
+        {
+            this.NewGame(g, game);
+        }
+
+        public void NewGame(GraphicsDevice g, MainGame game)
+        {
+            this.board = new List<CardZone>();
+            this.deck = new Deck(GameProperties.DECK_XCOR,
+                                GameProperties.DECK_YCOR,
+                                1,
+                                1,
+                                g,
+                                game);
+            this.board.Add(this.deck);
+
+            this.discard = new Discard(GameProperties.DISCARD_XCOR,
+                                GameProperties.DISCARD_YCOR,
+                                GameProperties.DISCARD_SEPARATION,
+                                0,
+                                g);
+            this.board.Add(this.discard);
+
+            this.selection = null;
+            this.board.Add(this.selection);
+
+            foundations = new List<Foundation>();
+            int foundX = GameProperties.WINDOW_WIDTH / 2;
+            for (int i = 0; i < 4; i++)
+            {
+                Foundation f = new Foundation(foundX,
+                                    GameProperties.DECK_YCOR,
+                                    0,
+                                    0,
+                                    g);
+                this.foundations.Add(f);
+                this.board.Add(f);
+                foundX += GameProperties.CARD_WIDTH + 40;
+            }
+
+            tableaus = new List<Tableau>();
+            int cardWidth = GameProperties.CARD_WIDTH;
+            int tableSpace = (GameProperties.WINDOW_WIDTH - (cardWidth * 7)) / 8;
+            int tabX = tableSpace;
+            for (int j = 0; j < 7; j++)
+            {
+                Tableau t = new Tableau(tabX,
+                                    GameProperties.WINDOW_HEIGHT / 2,
+                                    0,
+                                    GameProperties.TABLE_CARD_SEPARATION,
+                                    g);
+                this.tableaus.Add(t);
+                this.board.Add(t);
+                tabX += tableSpace + cardWidth;
+            }
+
+            this.score = 0;
+        }
+
+        public void Draw(GraphicsDevice g, SpriteBatch s)
+        {
+            foreach (CardZone cz in this.board)
+            {
+                if (cz != null)
+                {
+                    cz.Draw(s);
+                }
+            }
+        }
+
+        public bool GameOver()
+        {
+            return false;
+        }
+
+
+    }
+}
+
+        /*
         private Deck d;
         private List<Card> discard;
         private List<Stack<Card>> foundations;
@@ -264,26 +352,6 @@ namespace SolitaireGame
                 DrawBorder(s, tx, Color.Red, this.sel.X, this.sel.Y, this.sel.W, this.sel.H);
             }
 
-        }
-
-        /// <summary>
-        /// Draws a border.  Assumes x, y is the top-left corner.
-        /// </summary>
-        /// <param name="s">SpriteBatch object for drawing 2D textures</param>
-        /// <param name="tx">Some 2D texture</param>
-        /// <param name="c">The color of the border</param>
-        /// <param name="x">The X-coordinate of the border</param>
-        /// <param name="y">The Y-coordinate of the border</param>
-        /// <param name="w">The width of the border (left-to-right, NOT thickness)</param>
-        /// <param name="h">The height of the border</param>
-        private void DrawBorder(SpriteBatch s, Texture2D tx, Color c, int x, int y, int w, int h)
-        {
-            int thickness = 2;
-
-            s.Draw(tx, new Rectangle(x, y, thickness, h), c);
-            s.Draw(tx, new Rectangle(x + w, y, thickness, h), c);
-            s.Draw(tx, new Rectangle(x, y, w, thickness), c);
-            s.Draw(tx, new Rectangle(x, y + h, w, thickness), c);
         }
 
         /// <summary>
@@ -958,3 +1026,5 @@ namespace SolitaireGame
         // TODO undo functionality?
     }
 }
+*/
+  

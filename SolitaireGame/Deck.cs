@@ -4,73 +4,95 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace SolitaireGame
 {
-    public class Deck
+    public class Deck : CardZone
     {
-        private List<Card> cards;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="T:SolitaireGame.Deck"/> class.
         /// </summary>
-        public Deck()
-        {
-            this.cards = new List<Card>();
-
+        public Deck(int x, int y, int xSep, int ySep, GraphicsDevice g, MainGame game) : base(x, y, xSep, ySep, g)
+        { 
+            List<Card> currentSuit = new List<Card>();
             foreach (string suit in GameProperties.VALID_SUITS_ARRAY)
             {
                 for (int i = 1; i < 14; i++)
                 {
-                    cards.Add(new Card(i, suit));
+                    Card c = new Card(i, suit);
+                    c.LoadImage(game, GameProperties.CARD_COLOR);
+                    currentSuit.Add(c);
                 }
+
+                this.AddCards(currentSuit);
             }
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="T:SolitaireGame.Deck"/> class.  Uses a 
-        /// specific set of cards, instead of generating from scratch.
+        /// Deals a certain number of cards from the Deck
         /// </summary>
-        /// <param name="c">Some List of Cards</param>
-        public Deck(List<Card> c)
+        /// <param name="num">The number of Cards to deal</param>
+        /// <returns>A List of Cards of size num</returns>
+        public void Deal(int num, CardZone dst)
         {
-            this.cards = c;
+            Debug.Assert(dst is Discard || dst is Tableau);
+
+            // Nothing to do if deck is empty
+            if (this.IsEmpty())
+            {
+                return;
+            }
+
+            // If we have less cards than we are being asked for, give them all we have
+            if (this.Size() < num)
+            {
+                num = this.Size();
+            }
+
+            List<Card> c = this.RemoveCards(num);
+
+            // Face cards the proper direction and nest all of them
+            foreach (Card card in c)
+            {
+                if (dst is Discard)
+                {
+                    card.MakeFaceUp();
+                }
+                else
+                {
+                    card.MakeFaceDown();
+                }
+
+                card.Nest();
+            }
+
+            // Unnest the last card
+            c[c.Count - 1].UnNest();
+
+            // Flip the last card of a tableau
+            if (dst is Tableau)
+            {
+                c[c.Count - 1].Flip();
+            }
+
+            dst.AddCards(c);
         }
 
         /// <summary>
-        /// Gets the List of Card objects this Deck holds.
+        /// Checks if the Deck was clicked
         /// </summary>
-        /// <returns>A List of Cards</returns>
-        public List<Card> GetCards()
+        /// <returns><c>true</c>, if deck was clicked, <c>false</c> otherwise.</returns>
+        /// <param name="x">The x coordinate of the click</param>
+        /// <param name="y">The y coordinate of the click</param>
+        public new bool IsClicked(int x, int y)
         {
-            return this.cards;
-        }
-
-        /// <summary>
-        /// Checks to see if this Deck is empty
-        /// </summary>
-        /// <returns><c>true</c>, if the Deck is empty, <c>false</c> otherwise.</returns>
-        public bool IsEmpty()
-        {
-            return this.cards.Count == 0;
-        }
-
-        /// <summary>
-        /// Adds a Card to this Deck.
-        /// </summary>
-        /// <param name="c">Some Card object.</param>
-        public void AddCard(Card c)
-        {
-            this.cards.Add(c);
-        }
-
-        /// <summary>
-        /// Gets the size of this Deck (i.e. the number of Cards in it).
-        /// </summary>
-        /// <returns>The number of Cards in this Deck.</returns>
-        public int Size()
-        {
-            return this.cards.Count;
+            return ((this.x <= x && x <= this.x + this.width) 
+                   && (this.y <= y && y <= this.y + this.height))
+                   || 
+                   this.cards[this.Size() - 1].IsClicked(x, y, 0, 0);
         }
 
         /// <summary>
@@ -81,7 +103,7 @@ namespace SolitaireGame
             for (int i = 0; i < 3; i++)
             {
                 Random random = new Random();
-                int n = this.cards.Count - 1;
+                int n = this.Size() - 1;
 
                 while (n > 1)
                 {
@@ -92,23 +114,6 @@ namespace SolitaireGame
                     n--;
                 }
             }
-        }
-
-        /// <summary>
-        /// Deals a certain number of cards from the Deck
-        /// </summary>
-        /// <param name="num">The number of Cards to deal</param>
-        /// <returns>A List of Cards of size num</returns>
-        public List<Card> Deal(int num)
-        {
-            if (this.cards.Count < num)
-            {
-                num = this.cards.Count;
-            }
-
-            List<Card> c = this.cards.GetRange(0, num);
-            this.cards.RemoveRange(0, num);
-            return c;
         }
 
         /// <summary>

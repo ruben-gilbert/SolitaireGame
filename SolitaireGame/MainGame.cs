@@ -42,7 +42,7 @@ namespace SolitaireGame
             // TODO make card sizes dynamic based on window size?
             // TODO make window size dynamic based on height of screen
             // TODO make UI location dynamic based on window size?
-
+            /*
             if (GameProperties.WINDOW_HEIGHT > 1440)
             {
                 GameProperties.WINDOW_WIDTH = 1280;
@@ -53,6 +53,7 @@ namespace SolitaireGame
                 GameProperties.WINDOW_WIDTH = 1000;
                 GameProperties.WINDOW_HEIGHT = 1000;
             }
+            */
 
             /*
             if (GameProperties.WINDOW_WIDTH > 1920 && GameProperties.WINDOW_WIDTH > 1080)
@@ -90,7 +91,7 @@ namespace SolitaireGame
                 // add card color selection (and unload the card backs of other color?)
                 // button to show top scores?
 
-            this.backendGame = new BackendGame();
+            this.backendGame = new BackendGame(GraphicsDevice, this);
 
             this.IsMouseVisible = true;
             this.curState = Mouse.GetState();
@@ -113,14 +114,16 @@ namespace SolitaireGame
             // Create the SpriteFont object
             this.font = Content.Load<SpriteFont>("Victory");
 
+            /*
             // Load the image textures for each Card
             foreach (Card c in this.backendGame.GetDeck().GetCards())
             {
                 c.LoadImages(this, GameProperties.CARD_COLOR);
             }
+            */
 
             // Build the board now that textures have been loaded
-            this.backendGame.BuildBoard();
+            //this.backendGame.BuildBoard();
         }
 
         /// <summary>
@@ -149,6 +152,7 @@ namespace SolitaireGame
                 NewGame();
             }
 
+            /*
             if (!this.backendGame.GameOver())
             {
                 // Get the current state of the mouse.  If it's currently pressed
@@ -192,6 +196,7 @@ namespace SolitaireGame
                 this.gameOver = true;
                 this.endTime = DateTime.Now.ToShortDateString();
             }
+            */
 
             base.Update(gameTime);
         }
@@ -205,8 +210,9 @@ namespace SolitaireGame
             GraphicsDevice.Clear(Color.ForestGreen);
 
             spriteBatch.Begin();
-            this.backendGame.DrawGame(GraphicsDevice, this.spriteBatch);
+            this.backendGame.Draw(GraphicsDevice, this.spriteBatch);
 
+            /*
             if (this.gameOver)
             {
                 Vector2 vSize = font.MeasureString("VICTORY!");
@@ -225,6 +231,7 @@ namespace SolitaireGame
 
                 // TODO display the top scores from the file after winning a game?  Or menu option?
             }
+            */
             spriteBatch.End();
 
             base.Draw(gameTime);
@@ -235,17 +242,20 @@ namespace SolitaireGame
         /// </summary>
         protected void NewGame()
         {
+            /*
             // If the current game is won AND we haven't written to the file yet, check if 
             // we should write the score to the high score file
             if (!this.writtenToFile && this.gameOver)
             {
                 this.WriteScoreToFile();
             }
+            */
 
-            this.backendGame.NewGame();
+            this.backendGame.NewGame(GraphicsDevice, this);
             this.gameOver = false;
             this.writtenToFile = false;
 
+            /*
             // Load the image textures for each Card
             foreach (Card c in this.backendGame.GetDeck().GetCards())
             {
@@ -254,8 +264,10 @@ namespace SolitaireGame
 
             // Build the board now that textures have been loaded
             this.backendGame.BuildBoard();
+            */
         }
 
+        /*
         /// <summary>
         /// Writes the top 5 scores to the highscores.txt file.  If there are less than 5
         /// scores, all scores are re-appended.  If there are 5 scores, determines if the current 
@@ -305,15 +317,18 @@ namespace SolitaireGame
             this.writtenToFile = true;
 
         }
+        */
 
         protected override void OnExiting(Object sender, EventArgs args)
         {
+            /*
             // If the current game is won AND we haven't written to the file yet, check if 
             // we should write the score to the high score file before exiting
             if (!this.writtenToFile && this.gameOver)
             {
                 this.WriteScoreToFile();
             }
+            */
 
             base.OnExiting(sender, args);
         }
