@@ -17,9 +17,10 @@ namespace SolitaireGame
         /// </summary>
         public Deck(int x, int y, int xSep, int ySep, GraphicsDevice g, MainGame game) : base(x, y, xSep, ySep, g)
         { 
-            List<Card> currentSuit = new List<Card>();
+
             foreach (string suit in GameProperties.VALID_SUITS_ARRAY)
             {
+                List<Card> currentSuit = new List<Card>();
                 for (int i = 1; i < 14; i++)
                 {
                     Card c = new Card(i, suit);

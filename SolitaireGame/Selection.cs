@@ -12,11 +12,23 @@ namespace SolitaireGame
 {
     public class Selection : CardZone
     {
+        protected CardZone sourceZone;
+        protected int sourceX;  // TODO are these needed?
+        protected int sourceY;
+
         public Selection(int x, int y, int xSep, int ySep, GraphicsDevice g) :
             base(x, y, xSep, ySep, g)
         {
 
         }
+
+        // TODO update position method?
+        public void UpdatePosition(int x, int y)
+        {
+
+        }
+
+        // TODO return to source method?
     }
 }
 

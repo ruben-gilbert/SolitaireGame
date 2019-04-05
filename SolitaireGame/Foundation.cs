@@ -33,7 +33,8 @@ namespace SolitaireGame
                 return this.RemoveCards(1);
             }
 
-            return null;
+            // Return a small, empty List if nothing clicked (shouldn't actually happen)
+            return new List<Card>(1);
         }
 
     }

@@ -28,6 +28,8 @@ namespace SolitaireGame
         public readonly static int DISCARD_YCOR = DECK_YCOR;
         public readonly static int DISCARD_SEPARATION = 20;
 
+        public readonly static int FOUNDATION_YCOR = DECK_YCOR;
+
         //public readonly static int TABLE_START = WINDOW_HEIGHT / 3;
         public static int TABLE_START;
         public readonly static int TABLE_CARD_SEPARATION = 30;

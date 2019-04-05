@@ -162,7 +162,8 @@ namespace SolitaireGame
                 }
             }
 
-            return null;
+            // Return a small, empty List if nothing clicked (shouldn't actually happen)
+            return new List<Card>(1);
         }
 
         /// <summary>
@@ -203,6 +204,11 @@ namespace SolitaireGame
                    && (x <= this.x + this.width + hDisplacement) 
                    && (this.y - vDisplacement <= y)
                    && (y <= this.y + this.height);
+        }
+
+        public void MoveCardsToZone(int num, CardZone dst)
+        {
+            // TODO -- make this generic Deal method?
         }
 
         /// <summary>

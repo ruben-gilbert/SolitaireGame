@@ -29,6 +29,8 @@ namespace SolitaireGame
 
         public void NewGame(GraphicsDevice g, MainGame game)
         {
+            // TODO add buttons and menus, etc?
+
             this.board = new List<CardZone>();
             this.deck = new Deck(GameProperties.DECK_XCOR,
                                 GameProperties.DECK_YCOR,
@@ -45,38 +47,39 @@ namespace SolitaireGame
                                 g);
             this.board.Add(this.discard);
 
-            this.selection = null;
-            this.board.Add(this.selection);
-
             foundations = new List<Foundation>();
             int foundX = GameProperties.WINDOW_WIDTH / 2;
+            int foundSpace = (foundX - (GameProperties.CARD_WIDTH * 4)) / 4;
             for (int i = 0; i < 4; i++)
             {
                 Foundation f = new Foundation(foundX,
-                                    GameProperties.DECK_YCOR,
+                                    GameProperties.FOUNDATION_YCOR,
                                     0,
                                     0,
                                     g);
                 this.foundations.Add(f);
                 this.board.Add(f);
-                foundX += GameProperties.CARD_WIDTH + 40;
+                foundX += foundSpace + GameProperties.CARD_WIDTH;
             }
 
             tableaus = new List<Tableau>();
-            int cardWidth = GameProperties.CARD_WIDTH;
-            int tableSpace = (GameProperties.WINDOW_WIDTH - (cardWidth * 7)) / 8;
+
+            int tableSpace = (GameProperties.WINDOW_WIDTH - (GameProperties.CARD_WIDTH * 7)) / 8;
             int tabX = tableSpace;
-            for (int j = 0; j < 7; j++)
+            for (int j = 1; j < 8; j++)
             {
                 Tableau t = new Tableau(tabX,
                                     GameProperties.WINDOW_HEIGHT / 2,
                                     0,
                                     GameProperties.TABLE_CARD_SEPARATION,
                                     g);
+                this.deck.Deal(j, t);
                 this.tableaus.Add(t);
                 this.board.Add(t);
-                tabX += tableSpace + cardWidth;
+                tabX += tableSpace + GameProperties.CARD_WIDTH;
             }
+
+            this.selection = new Selection(0, 0, 0, 0, g);
 
             this.score = 0;
         }
@@ -85,18 +88,69 @@ namespace SolitaireGame
         {
             foreach (CardZone cz in this.board)
             {
-                if (cz != null)
-                {
-                    cz.Draw(s);
-                }
+                cz.Draw(s);
+            }
+
+            // Only draw the selection if there is something in it 
+            if (!this.selection.IsEmpty())
+            {
+                this.selection.Draw(s);
             }
         }
 
         public bool GameOver()
         {
-            return false;
+            foreach (Foundation f in this.foundations) {
+                if (f.Size() != 13)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
+        public void HandleDoubleClick(int x, int y)
+        {
+
+        }
+
+        public void HandleMouseDown(int x, int y, bool isHeld)
+        {
+            if (isHeld)
+            {
+                if (!this.selection.IsEmpty())
+                {
+                    this.selection.UpdatePosition(x, y);
+                }
+            }
+            else
+            {
+                CardZone clicked = null;
+                foreach (CardZone zone in this.board)
+                {
+                    if (zone.IsClicked(x, y))
+                    {
+                        clicked = zone;
+                        break;
+                    }
+                }
+
+                if (clicked != null)
+                {
+                    // TODO what to do in clicked zone?
+                    if (clicked is Deck)
+                    {
+                        ((Deck)clicked).Deal(GameProperties.DEAL_MODE, this.discard);
+                    }
+                }
+            }
+        }
+
+        public void HandleMouseUp(int x, int y)
+        {
+        
+        }
 
     }
 }

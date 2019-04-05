@@ -35,9 +35,12 @@ namespace SolitaireGame
         public MainGame()
         {
             graphics = new GraphicsDeviceManager(this);
-            
-            GameProperties.WINDOW_WIDTH = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-            GameProperties.WINDOW_HEIGHT = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+
+            //GameProperties.WINDOW_WIDTH = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+            //GameProperties.WINDOW_HEIGHT = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+
+            GameProperties.WINDOW_WIDTH = 1280;
+            GameProperties.WINDOW_HEIGHT = 720;
 
             // TODO make card sizes dynamic based on window size?
             // TODO make window size dynamic based on height of screen
@@ -152,51 +155,66 @@ namespace SolitaireGame
                 NewGame();
             }
 
-            /*
+
             if (!this.backendGame.GameOver())
             {
-                // Get the current state of the mouse.  If it's currently pressed
-                // and it used to be released, it must be a "click" we should
-                // attempt to handle
                 this.curState = Mouse.GetState();
-
                 this.clickTimer += gameTime.ElapsedGameTime.TotalMilliseconds;
 
+                // TODO handle click for first time
+                // TODO handle double click
                 if (this.curState.LeftButton == ButtonState.Pressed &&
                     this.oldState.LeftButton == ButtonState.Released)
                 {
+
                     if (this.clickTimer < timerDelay)
                     {
-                        // Double Click Detected
-                        this.backendGame.MouseClicked(curState.X, curState.Y, true);
+                        this.backendGame.HandleDoubleClick(curState.X, curState.Y);
                     }
                     else
                     {
-                        // Single click detected
-                        this.backendGame.MouseClicked(curState.X, curState.Y, false);
+                        this.backendGame.HandleMouseDown(this.curState.X, this.curState.Y, false);
                     }
 
                     this.clickTimer = 0;
+                }
 
-                } 
+                // TODO handle mouse still down from a click
+                if (this.curState.LeftButton == ButtonState.Pressed &&
+                    this.curState == this.oldState)
+                {
+                    this.backendGame.HandleMouseDown(this.curState.X, this.curState.Y, true);
+                }
+
+                // TODO handle release from hold
+                if (this.curState.LeftButton == ButtonState.Released &&
+                    this.oldState.LeftButton == ButtonState.Pressed)
+                {
+
+                }
+
+                /*
                 else if (this.curState.RightButton == ButtonState.Pressed &&
                         this.oldState.RightButton == ButtonState.Released)
                 {
+
                     if (this.backendGame.CanAutoComplete())
                     {
                         Thread t = new Thread(this.backendGame.AutoComplete);
                         t.Start();
                     }
+
                 }
+                */               
 
                 this.oldState = curState;
             }
             else
             {
                 this.gameOver = true;
-                this.endTime = DateTime.Now.ToShortDateString();
+                //this.endTime = DateTime.Now.ToShortDateString();
             }
-            */
+
 
             base.Update(gameTime);
         }
