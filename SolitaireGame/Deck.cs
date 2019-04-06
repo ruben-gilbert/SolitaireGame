@@ -134,7 +134,7 @@ namespace SolitaireGame
                 }
             }
 
-            // TODO readjust the (x,y) location of all the cards
+            this.RealignCards(this.Size());
         }
 
         /// <summary>
