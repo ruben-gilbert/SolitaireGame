@@ -36,8 +36,8 @@ namespace SolitaireGame
         /// Deals a certain number of cards from the Deck
         /// </summary>
         /// <param name="num">The number of Cards to deal</param>
-        /// <returns>A List of Cards of size num</returns>
-        public void Deal(int num, CardZone dst)
+        /// <param name="dst">The destination CardZone</param>
+        public override void MoveCardsToZone(int num, CardZone dst)
         {
             Debug.Assert(dst is Discard || dst is Tableau);
 
@@ -88,12 +88,30 @@ namespace SolitaireGame
         /// <returns><c>true</c>, if deck was clicked, <c>false</c> otherwise.</returns>
         /// <param name="x">The x coordinate of the click</param>
         /// <param name="y">The y coordinate of the click</param>
-        public new bool IsClicked(int x, int y)
+        public override bool IsClicked(int x, int y)
         {
             return ((this.x <= x && x <= this.x + this.width) 
                    && (this.y <= y && y <= this.y + this.height))
                    || 
-                   this.cards[this.Size() - 1].IsClicked(x, y, 0, 0);
+                   (!this.IsEmpty() && this.cards[this.Size() - 1].IsClicked(x, y, 0, 0));
+        }
+
+        /// <summary>
+        /// Remove some number of cards from the FRONT of this Deck (overrides default Zone
+        /// behavior of removing from the back).
+        /// </summary>
+        /// <param name="num">The number of cards to be removed</param>
+        /// <returns>A list of cards removed from the front</returns>
+        public override List<Card> RemoveCards(int num, bool fromFront = true)
+        {
+            List<Card> baseRemoved = base.RemoveCards(num, fromFront);
+
+            if (!this.IsEmpty())
+            {
+                this.RealignCards(this.Size());
+            }
+
+            return baseRemoved;
         }
 
         /// <summary>
@@ -115,6 +133,8 @@ namespace SolitaireGame
                     n--;
                 }
             }
+
+            // TODO readjust the (x,y) location of all the cards
         }
 
         /// <summary>

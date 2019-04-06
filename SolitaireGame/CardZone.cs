@@ -68,7 +68,7 @@ namespace SolitaireGame
 
         public int Height
         {
-            get { return this.Height; }
+            get { return this.height; }
         }
 
         // -----------------------------------------------------------------------------------------
@@ -81,8 +81,6 @@ namespace SolitaireGame
         /// <param name="c">A List of one or more cards to be added to this Zone.</param>
         public virtual void AddCards(List<Card> c)
         {
-
-            // TODO update the separation of this Zone depending on the size (if it exceeds bounds?)
 
             // Make sure to nest the top card
             if (!this.IsEmpty())
@@ -150,7 +148,6 @@ namespace SolitaireGame
             s.Draw(tex, new Rectangle(this.x, this.y + this.height, this.width, thickness), c);
         }
 
-        // TODO use LINQ here to instantly grab position of the clicked card?
         public virtual List<Card> GetClicked(int x, int y)
         {
             for (int i = 0; i < this.Size(); i++)
@@ -206,9 +203,33 @@ namespace SolitaireGame
                    && (y <= this.y + this.height);
         }
 
-        public void MoveCardsToZone(int num, CardZone dst)
+        /// <summary>
+        /// Move num cards from this Zone to the destination Zone dst
+        /// </summary>
+        /// <param name="num">The number of cards to be moved.</param>
+        /// <param name="dst">The destination CardZone to put the cards.</param>
+        public virtual void MoveCardsToZone(int num, CardZone dst)
         {
-            // TODO -- make this generic Deal method?
+            Debug.Assert(num <= this.Size());
+            dst.AddCards(this.RemoveCards(num));
+        }
+
+        /// <summary>
+        /// Realign num Card's positions in this Zone based on this Zone's (x,y)
+        /// coordinate and x and y separation values.  Realignment is done with respect to the back
+        /// of the Zone.
+        /// <param name="num">The number of cards to realign</param>
+        /// </summary>
+        protected void RealignCards(int num)
+        {
+            Debug.Assert(!this.IsEmpty());
+
+            for (int i = 0; i < num; i++)
+            {
+                int location = this.Size() + i - num;
+                this.cards[location].X = this.x + (i * this.xSeparation);
+                this.cards[location].Y = this.y + (i * this.ySeparation);
+            }
         }
 
         /// <summary>
@@ -217,15 +238,27 @@ namespace SolitaireGame
         /// Updates the height and width of the Zone and unnests the top card of the remaining
         /// Zone (if applicable).  Does NOT update the locations of the cards -- cards should be 
         /// moving from one Zone to another, therefore the AddCards method is in charge of location.
+        /// It is the job of the derived method to update card positions if it pulls from the 
+        /// front of the Zone.
         /// </summary>
         /// <returns>Some List of cards</returns>
         /// <param name="num">The number of cards to be removed from the back of the Zone.</param>
-        public virtual List<Card> RemoveCards(int num)
+        /// <param name="fromFront">If true, remove from the front of the zone, defaults to false.</param>
+        public virtual List<Card> RemoveCards(int num, bool fromFront = false)
         {
             Debug.Assert(this.Size() >= num);
 
-            List<Card> removed = this.cards.GetRange(this.Size() - num, num);
-            this.cards.RemoveRange(this.Size() - num, num);
+            int location;
+            if (fromFront)
+            {
+                location = 0;
+            } else
+            {
+                location = this.Size() - num;
+            }
+
+            List<Card> removed = this.cards.GetRange(location, num);
+            this.cards.RemoveRange(location, num);
             this.height -= num * this.ySeparation;
             this.width -= num * this.xSeparation;
 
@@ -261,6 +294,5 @@ namespace SolitaireGame
             // TODO -- format a nice string?
             return "";
         }
-
     }
 }

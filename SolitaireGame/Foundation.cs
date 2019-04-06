@@ -26,7 +26,7 @@ namespace SolitaireGame
 
         }
 
-        public new List<Card> GetClicked(int x, int y)
+        public override List<Card> GetClicked(int x, int y)
         {
             if (this.TopCard().IsClicked(x, y, 0, 0))
             {

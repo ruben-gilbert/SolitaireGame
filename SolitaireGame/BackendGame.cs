@@ -38,6 +38,7 @@ namespace SolitaireGame
                                 1,
                                 g,
                                 game);
+            //this.deck.Shuffle();
             this.board.Add(this.deck);
 
             this.discard = new Discard(GameProperties.DISCARD_XCOR,
@@ -73,7 +74,7 @@ namespace SolitaireGame
                                     0,
                                     GameProperties.TABLE_CARD_SEPARATION,
                                     g);
-                this.deck.Deal(j, t);
+                this.deck.MoveCardsToZone(j, t);
                 this.tableaus.Add(t);
                 this.board.Add(t);
                 tabX += tableSpace + GameProperties.CARD_WIDTH;
@@ -126,6 +127,8 @@ namespace SolitaireGame
             }
             else
             {
+                Console.WriteLine("MOUSE DOWN (" + x + ", " + y + ")");
+
                 CardZone clicked = null;
                 foreach (CardZone zone in this.board)
                 {
@@ -141,7 +144,14 @@ namespace SolitaireGame
                     // TODO what to do in clicked zone?
                     if (clicked is Deck)
                     {
-                        ((Deck)clicked).Deal(GameProperties.DEAL_MODE, this.discard);
+                        if (clicked.IsEmpty())
+                        {
+                            this.discard.MoveCardsToZone(this.discard.Size(), clicked);
+                        }
+                        else
+                        {
+                            clicked.MoveCardsToZone(GameProperties.DEAL_MODE, this.discard);
+                        }
                     }
                 }
             }
