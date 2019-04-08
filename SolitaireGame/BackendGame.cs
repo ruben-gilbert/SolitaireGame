@@ -5,6 +5,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -85,6 +86,12 @@ namespace SolitaireGame
             this.score = 0;
         }
 
+        /// <summary>
+        /// Draw the game.  Ask each CardZone in the board to draw itself and, if there is a valid
+        /// selection, draw it as well.
+        /// </summary>
+        /// <param name="g">The GraphicsDevice for this game</param>
+        /// <param name="s">The SpriteBatch object that will handle drawing.</param>
         public void Draw(GraphicsDevice g, SpriteBatch s)
         {
             foreach (CardZone cz in this.board)
@@ -99,6 +106,10 @@ namespace SolitaireGame
             }
         }
 
+        /// <summary>
+        /// Checks if the game is over.
+        /// </summary>
+        /// <returns><c>true</c>, if all Foundations are full, <c>false</c> otherwise.</returns>
         public bool GameOver()
         {
             foreach (Foundation f in this.foundations) {
@@ -113,26 +124,24 @@ namespace SolitaireGame
 
         public void HandleDoubleClick(int x, int y)
         {
-
+            // TODO -- auto score card if only one is double-clicked
         }
 
         public void HandleMouseDown(int x, int y, bool isHeld)
         {
             if (isHeld)
             {
-                Console.WriteLine("MOUSE IS BEING HELD");
+                //Console.WriteLine("MOUSE IS BEING HELD");
 
                 // TODO if there are cards in the selection, redraw at the mouse position?
                 if (!this.selection.IsEmpty())
                 {
+                    // TODO -- speed this up?  Threads?  
                     this.selection.UpdatePosition(x, y);
                 }
             }
             else
             {
-                // TODO refactor so a Zone property is set that mouse went down on it, mouse up 
-                // will handle ACTUALLY clicking
-
                 Console.WriteLine("MOUSE DOWN (" + x + ", " + y + ")");
 
                 CardZone clicked = null;
@@ -147,17 +156,17 @@ namespace SolitaireGame
 
                 if (clicked != null)
                 {
-                    // TODO what to do in clicked zone?
                     if (clicked is Deck)
                     {
-                        if (clicked.IsEmpty())
-                        {
-                            this.discard.MoveCardsToZone(this.discard.Size(), clicked);
-                        }
-                        else
-                        {
-                            clicked.MoveCardsToZone(GameProperties.DEAL_MODE, this.discard);
-                        }
+                        ((Deck)clicked).Select();
+                    }
+                    else
+                    {
+                        // TODO -- make play into Selection?
+                        int numToMove = clicked.GetClicked(x, y);
+                        clicked.MoveCardsToZone(numToMove, this.selection);
+                        this.selection.SetSourceZone(clicked);
+                        this.selection.SetRelativeOffsets(x, y);
                     }
                 }
             }
@@ -165,19 +174,33 @@ namespace SolitaireGame
 
         public void HandleMouseUp(int x, int y)
         {
+            // If the selection isn't empty, it's valid and we should consider playing it
             if (!this.selection.IsEmpty())
             {
                 // TODO handle playing the selection at the mouse's location
+                this.selection.ReturnToSource();
             }
             else
             {
-                // TODO check Zones if the mouse is still over it AND it has been set "clicked" during mouse down
-            }
-            
-            
-        
-        }
+                // If there's no selection to play, we only need to consider if the deck was clicked
+                if (this.deck.IsSelected())
+                {
+                    if (this.deck.IsClicked(x, y))
+                    {
+                        if (this.deck.IsEmpty())
+                        {
+                            this.discard.MoveCardsToZone(this.discard.Size(), this.deck);
+                        }
+                        else
+                        {
+                            this.deck.MoveCardsToZone(GameProperties.DEAL_MODE, this.discard);
+                        }
+                    }
 
+                    this.deck.Deselect();
+                }
+            }
+        }
     }
 }
 

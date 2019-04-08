@@ -13,22 +13,70 @@ namespace SolitaireGame
     public class Selection : CardZone
     {
         protected CardZone sourceZone;
-        protected int sourceX;  // TODO are these needed?
-        protected int sourceY;
+        protected int relativeXOffset;
+        protected int relativeYOffset;
 
         public Selection(int x, int y, int xSep, int ySep, GraphicsDevice g) :
             base(x, y, xSep, ySep, g)
-        {
-
+        { 
+            //this.relativeXOffset = 0;
+            //this.relativeYOffset = 0;
         }
 
-        // TODO update position method?
-        public void UpdatePosition(int x, int y)
+        /// <summary>
+        /// Set the relative offset position for the Cards in this Selection.  When
+        /// a selection is made, we want the Cards in the Selection to move with respect
+        /// to where the mouse was placed on them when the user clicked.
+        /// </summary>
+        /// <param name="clickX">Click x.</param>
+        /// <param name="clickY">Click y.</param>
+        public void SetRelativeOffsets(int clickX, int clickY)
         {
+            this.x = sourceZone.X;
+            this.y = sourceZone.Y;
+            this.relativeXOffset = this.x - clickX;
+            this.relativeYOffset = this.y - clickY;
+        }
 
+        public void SetSourceZone(CardZone source)
+        {
+            this.sourceZone = source;
+            this.xSeparation = source.XSeparation;
+            this.ySeparation = source.YSeparation;
+        }
+
+        /// <summary>
+        /// Updates the position of this Selection based on the current (x, y) coordinates
+        /// of the mouse.
+        /// </summary>
+        /// <param name="mouseX">Click x.</param>
+        /// <param name="mouseY">Click y.</param>
+        public void UpdatePosition(int mouseX, int mouseY)
+        {
+            this.x = mouseX + this.relativeXOffset;
+            this.y = mouseY + this.relativeYOffset;
+
+            for (int i = 0; i < this.Size(); i++)
+            {
+                this.cards[i].X = this.x + (this.xSeparation * i);
+                this.cards[i].Y = this.y + (this.ySeparation * i);
+            }
+
+            //Console.WriteLine("Position: " + x + " " + y);
         }
 
         // TODO return to source method?
+        public void ReturnToSource()
+        {
+            this.MoveCardsToZone(this.Size(), this.sourceZone);
+            this.x = 0;
+            this.y = 0;
+            this.xSeparation = 0;
+            this.ySeparation = 0;
+            this.relativeXOffset = 0;
+            this.relativeYOffset = 0;
+            this.sourceZone = null;
+        }
     }
 }
 

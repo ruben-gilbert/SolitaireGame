@@ -71,6 +71,16 @@ namespace SolitaireGame
             get { return this.height; }
         }
 
+        public int XSeparation
+        {
+            get { return this.xSeparation; }
+        }
+
+        public int YSeparation
+        {
+            get { return this.ySeparation; }
+        }
+
         // -----------------------------------------------------------------------------------------
         // Methods
 
@@ -148,19 +158,18 @@ namespace SolitaireGame
             s.Draw(tex, new Rectangle(this.x, this.y + this.height, this.width, thickness), c);
         }
 
-        public virtual List<Card> GetClicked(int x, int y)
+        public virtual int GetClicked(int x, int y)
         {
             for (int i = 0; i < this.Size(); i++)
             {
                 if (this.cards[i].IsClicked(x, y, this.xSeparation, this.ySeparation))
                 {
-                    int clickSize = this.Size() - i;
-                    return this.RemoveCards(clickSize);
+                    return this.Size() - i;
                 }
             }
 
-            // Return a small, empty List if nothing clicked (shouldn't actually happen)
-            return new List<Card>(1);
+            // Return -1 on failure (shouldn't actually happen)
+            return -1;
         }
 
         /// <summary>
@@ -210,7 +219,7 @@ namespace SolitaireGame
         /// <param name="dst">The destination CardZone to put the cards.</param>
         public virtual void MoveCardsToZone(int num, CardZone dst)
         {
-            Debug.Assert(num <= this.Size());
+            Debug.Assert(num >= 0 && num <= this.Size());
             dst.AddCards(this.RemoveCards(num));
         }
 
@@ -246,13 +255,12 @@ namespace SolitaireGame
         /// <param name="fromFront">If true, remove from the front of the zone, defaults to false.</param>
         public virtual List<Card> RemoveCards(int num, bool fromFront = false)
         {
-            Debug.Assert(this.Size() >= num);
-
             int location;
             if (fromFront)
             {
                 location = 0;
-            } else
+            } 
+            else
             {
                 location = this.Size() - num;
             }
@@ -284,9 +292,21 @@ namespace SolitaireGame
             return this.cards.Count;
         }
 
+        /// <summary>
+        /// Shorthand method for getting the last card in a Zone
+        /// </summary>
+        /// <returns>The card in the last position of the Zone</returns>
         public Card TopCard()
         {
-            return this.cards[this.Size() - 1];
+            if (!this.IsEmpty())
+            {
+                return this.cards[this.Size() - 1];
+            }
+            else
+            {
+                return null;
+            }
+
         }
 
         public override string ToString()

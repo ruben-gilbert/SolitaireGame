@@ -176,6 +176,7 @@ namespace SolitaireGame
                         this.backendGame.HandleMouseDown(this.curState.X, this.curState.Y, false);
                     }
 
+                    // TODO -- should this go outside all if statements?
                     this.clickTimer = 0;
                 }
                 else if (this.curState.LeftButton == ButtonState.Pressed &&

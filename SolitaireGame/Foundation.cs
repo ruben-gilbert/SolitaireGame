@@ -26,15 +26,15 @@ namespace SolitaireGame
 
         }
 
-        public override List<Card> GetClicked(int x, int y)
+        public override int GetClicked(int x, int y)
         {
             if (this.TopCard().IsClicked(x, y, 0, 0))
             {
-                return this.RemoveCards(1);
+                return 1;
             }
 
-            // Return a small, empty List if nothing clicked (shouldn't actually happen)
-            return new List<Card>(1);
+            // Return -1 on failure (shouldn't actually happen)
+            return -1;
         }
 
     }
