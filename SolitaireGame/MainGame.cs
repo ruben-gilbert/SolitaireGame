@@ -161,36 +161,35 @@ namespace SolitaireGame
                 this.curState = Mouse.GetState();
                 this.clickTimer += gameTime.ElapsedGameTime.TotalMilliseconds;
 
-                // TODO handle click for first time
-                // TODO handle double click
                 if (this.curState.LeftButton == ButtonState.Pressed &&
                     this.oldState.LeftButton == ButtonState.Released)
                 {
 
                     if (this.clickTimer < timerDelay)
                     {
+                        // TODO handle double click
                         this.backendGame.HandleDoubleClick(curState.X, curState.Y);
                     }
                     else
                     {
+                        // TODO handle click for first time
                         this.backendGame.HandleMouseDown(this.curState.X, this.curState.Y, false);
                     }
 
                     this.clickTimer = 0;
                 }
-
-                // TODO handle mouse still down from a click
-                if (this.curState.LeftButton == ButtonState.Pressed &&
+                else if (this.curState.LeftButton == ButtonState.Pressed &&
                     this.curState == this.oldState)
                 {
+                    // TODO handle mouse still down from a click
                     this.backendGame.HandleMouseDown(this.curState.X, this.curState.Y, true);
                 }
 
-                // TODO handle release from hold
                 if (this.curState.LeftButton == ButtonState.Released &&
                     this.oldState.LeftButton == ButtonState.Pressed)
                 {
-
+                    // TODO handle mouse being released
+                    this.backendGame.HandleMouseUp(this.curState.X, this.curState.Y);
                 }
 
                 /*
@@ -205,7 +204,7 @@ namespace SolitaireGame
                     }
 
                 }
-                */               
+                */
 
                 this.oldState = curState;
             }

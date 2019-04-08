@@ -120,6 +120,9 @@ namespace SolitaireGame
         {
             if (isHeld)
             {
+                Console.WriteLine("MOUSE IS BEING HELD");
+
+                // TODO if there are cards in the selection, redraw at the mouse position?
                 if (!this.selection.IsEmpty())
                 {
                     this.selection.UpdatePosition(x, y);
@@ -127,6 +130,9 @@ namespace SolitaireGame
             }
             else
             {
+                // TODO refactor so a Zone property is set that mouse went down on it, mouse up 
+                // will handle ACTUALLY clicking
+
                 Console.WriteLine("MOUSE DOWN (" + x + ", " + y + ")");
 
                 CardZone clicked = null;
@@ -159,6 +165,16 @@ namespace SolitaireGame
 
         public void HandleMouseUp(int x, int y)
         {
+            if (!this.selection.IsEmpty())
+            {
+                // TODO handle playing the selection at the mouse's location
+            }
+            else
+            {
+                // TODO check Zones if the mouse is still over it AND it has been set "clicked" during mouse down
+            }
+            
+            
         
         }
 
