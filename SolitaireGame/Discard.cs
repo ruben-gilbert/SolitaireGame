@@ -29,7 +29,8 @@ namespace SolitaireGame
                     this.cards[i].Y = this.y;
                 }
             }
-
+            
+            // TODO -- cards not realigning properly?
             base.AddCards(c);
             this.RealignCards(GameProperties.DEAL_MODE);
         }
@@ -69,18 +70,5 @@ namespace SolitaireGame
 
             base.MoveCardsToZone(num, dst);
         }
-
-        public override List<Card> RemoveCards(int num, bool fromFront = false)
-        {
-            List<Card> baseRemoved = base.RemoveCards(num, fromFront);
-
-            if (!this.IsEmpty())
-            {
-                this.RealignCards(GameProperties.DEAL_MODE);
-            }
-            
-            return baseRemoved;
-        }
-
     }
 }

@@ -18,9 +18,29 @@ namespace SolitaireGame
 
         public Selection(int x, int y, int xSep, int ySep, GraphicsDevice g) :
             base(x, y, xSep, ySep, g)
-        { 
+        {
             //this.relativeXOffset = 0;
             //this.relativeYOffset = 0;
+        }
+
+        // TODO -- any more to this method?
+        public void CompleteMove(CardZone dst)
+        {
+            // Perform move as normal
+            this.MoveCardsToZone(this.Size(), dst);
+
+            // Take care of any cleanup after the move
+            if (this.sourceZone is Tableau && !this.sourceZone.IsEmpty() 
+                && this.sourceZone.TopCard().IsUp)
+            {
+                this.sourceZone.TopCard().Flip();
+            }
+            else if (this.sourceZone is Discard && !this.sourceZone.IsEmpty())
+            {
+                this.sourceZone.RealignCards(this.sourceZone.Size());
+            }
+
+            this.Reset();
         }
 
         /// <summary>
@@ -28,12 +48,13 @@ namespace SolitaireGame
         /// a selection is made, we want the Cards in the Selection to move with respect
         /// to where the mouse was placed on them when the user clicked.
         /// </summary>
+        /// <param name="numToMove">The number of cards being moved from the source</param>
         /// <param name="clickX">Click x.</param>
         /// <param name="clickY">Click y.</param>
-        public void SetRelativeOffsets(int clickX, int clickY)
+        public void SetRelativeOffsets(int numToMove, int clickX, int clickY)
         {
-            this.x = sourceZone.X;
-            this.y = sourceZone.Y;
+            this.x = this.sourceZone.Cards[this.sourceZone.Size() - numToMove].X;
+            this.y = this.sourceZone.Cards[this.sourceZone.Size() - numToMove].Y;
             this.relativeXOffset = this.x - clickX;
             this.relativeYOffset = this.y - clickY;
         }
@@ -43,6 +64,27 @@ namespace SolitaireGame
             this.sourceZone = source;
             this.xSeparation = source.XSeparation;
             this.ySeparation = source.YSeparation;
+        }
+
+        /// <summary>
+        /// Helper function to reset this Selection object.
+        /// </summary>
+        private void Reset()
+        {
+            this.x = 0;
+            this.y = 0;
+            this.xSeparation = 0;
+            this.ySeparation = 0;
+            this.relativeXOffset = 0;
+            this.relativeYOffset = 0;
+            this.sourceZone = null;
+        }
+
+        // TODO return to source method?
+        public void ReturnToSource()
+        {
+            this.MoveCardsToZone(this.Size(), this.sourceZone);
+            this.Reset();
         }
 
         /// <summary>
@@ -61,21 +103,6 @@ namespace SolitaireGame
                 this.cards[i].X = this.x + (this.xSeparation * i);
                 this.cards[i].Y = this.y + (this.ySeparation * i);
             }
-
-            //Console.WriteLine("Position: " + x + " " + y);
-        }
-
-        // TODO return to source method?
-        public void ReturnToSource()
-        {
-            this.MoveCardsToZone(this.Size(), this.sourceZone);
-            this.x = 0;
-            this.y = 0;
-            this.xSeparation = 0;
-            this.ySeparation = 0;
-            this.relativeXOffset = 0;
-            this.relativeYOffset = 0;
-            this.sourceZone = null;
         }
     }
 }

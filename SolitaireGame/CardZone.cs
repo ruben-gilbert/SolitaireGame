@@ -168,7 +168,7 @@ namespace SolitaireGame
                 }
             }
 
-            // Return -1 on failure (shouldn't actually happen)
+            // Return -1 on failure
             return -1;
         }
 
@@ -220,6 +220,7 @@ namespace SolitaireGame
         public virtual void MoveCardsToZone(int num, CardZone dst)
         {
             Debug.Assert(num >= 0 && num <= this.Size());
+
             dst.AddCards(this.RemoveCards(num));
         }
 
@@ -229,9 +230,14 @@ namespace SolitaireGame
         /// of the Zone.
         /// <param name="num">The number of cards to realign</param>
         /// </summary>
-        protected void RealignCards(int num)
+        public void RealignCards(int num)
         {
             Debug.Assert(!this.IsEmpty());
+
+            if (this.Size() < num)
+            {
+                num = this.Size();
+            }
 
             for (int i = 0; i < num; i++)
             {

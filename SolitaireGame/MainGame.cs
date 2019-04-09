@@ -31,6 +31,7 @@ namespace SolitaireGame
         private bool gameOver;
         private string endTime;
         private bool writtenToFile;
+        private bool selectionMade;
         
         public MainGame()
         {
@@ -102,6 +103,7 @@ namespace SolitaireGame
             this.clickTimer = 0;
             this.gameOver = false;
             this.writtenToFile = false;
+            this.selectionMade = false;
 
             base.Initialize();
         }
@@ -161,6 +163,11 @@ namespace SolitaireGame
                 this.curState = Mouse.GetState();
                 this.clickTimer += gameTime.ElapsedGameTime.TotalMilliseconds;
 
+                if (this.selectionMade)
+                {
+                    this.backendGame.UpdateSelection(this.curState.X, this.curState.Y);
+                }
+
                 if (this.curState.LeftButton == ButtonState.Pressed &&
                     this.oldState.LeftButton == ButtonState.Released)
                 {
@@ -173,17 +180,12 @@ namespace SolitaireGame
                     else
                     {
                         // TODO handle click for first time
-                        this.backendGame.HandleMouseDown(this.curState.X, this.curState.Y, false);
+                        this.backendGame.HandleMouseDown(this.curState.X, this.curState.Y);
+                        this.selectionMade = true;
                     }
 
                     // TODO -- should this go outside all if statements?
                     this.clickTimer = 0;
-                }
-                else if (this.curState.LeftButton == ButtonState.Pressed &&
-                    this.curState == this.oldState)
-                {
-                    // TODO handle mouse still down from a click
-                    this.backendGame.HandleMouseDown(this.curState.X, this.curState.Y, true);
                 }
 
                 if (this.curState.LeftButton == ButtonState.Released &&
@@ -191,6 +193,7 @@ namespace SolitaireGame
                 {
                     // TODO handle mouse being released
                     this.backendGame.HandleMouseUp(this.curState.X, this.curState.Y);
+                    this.selectionMade = false;
                 }
 
                 /*

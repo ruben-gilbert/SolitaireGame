@@ -127,49 +127,40 @@ namespace SolitaireGame
             // TODO -- auto score card if only one is double-clicked
         }
 
-        public void HandleMouseDown(int x, int y, bool isHeld)
+        public void HandleMouseDown(int x, int y)
         {
-            if (isHeld)
-            {
-                //Console.WriteLine("MOUSE IS BEING HELD");
+            
+            //Console.WriteLine("MOUSE DOWN (" + x + ", " + y + ")");
 
-                // TODO if there are cards in the selection, redraw at the mouse position?
-                if (!this.selection.IsEmpty())
+            CardZone clicked = null;
+            foreach (CardZone zone in this.board)
+            {
+                if (zone.IsClicked(x, y))
                 {
-                    // TODO -- speed this up?  Threads?  
-                    this.selection.UpdatePosition(x, y);
+                    clicked = zone;
+                    break;
                 }
             }
-            else
+
+            if (clicked != null)
             {
-                Console.WriteLine("MOUSE DOWN (" + x + ", " + y + ")");
-
-                CardZone clicked = null;
-                foreach (CardZone zone in this.board)
+                if (clicked is Deck)
                 {
-                    if (zone.IsClicked(x, y))
-                    {
-                        clicked = zone;
-                        break;
-                    }
+                    ((Deck)clicked).Select();
                 }
-
-                if (clicked != null)
+                else
                 {
-                    if (clicked is Deck)
+                    // TODO -- make play into Selection?
+                    int numToMove = clicked.GetClicked(x, y);
+                    if (numToMove != -1)
                     {
-                        ((Deck)clicked).Select();
-                    }
-                    else
-                    {
-                        // TODO -- make play into Selection?
-                        int numToMove = clicked.GetClicked(x, y);
-                        clicked.MoveCardsToZone(numToMove, this.selection);
                         this.selection.SetSourceZone(clicked);
-                        this.selection.SetRelativeOffsets(x, y);
+                        this.selection.SetRelativeOffsets(numToMove, x, y);
+                        clicked.MoveCardsToZone(numToMove, this.selection);
                     }
                 }
             }
+            
         }
 
         public void HandleMouseUp(int x, int y)
@@ -178,6 +169,10 @@ namespace SolitaireGame
             if (!this.selection.IsEmpty())
             {
                 // TODO handle playing the selection at the mouse's location
+
+                // If placement is valid, play it
+
+                // otherwise, return to source
                 this.selection.ReturnToSource();
             }
             else
@@ -200,6 +195,11 @@ namespace SolitaireGame
                     this.deck.Deselect();
                 }
             }
+        }
+
+        public void UpdateSelection(int x, int y)
+        {
+            this.selection.UpdatePosition(x, y);
         }
     }
 }

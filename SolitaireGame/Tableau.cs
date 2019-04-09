@@ -25,25 +25,22 @@ namespace SolitaireGame
             {
                 if (this.cards[i].IsClicked(x, y, this.width, this.ySeparation))
                 {
-                    return this.Size() - i;
+                    if (this.cards[i].IsUp)
+                    {
+                        Console.WriteLine(cards[i] + " is clicked");
+                        return this.Size() - i;
+                    }
+                    else
+                    {
+                        Console.WriteLine(cards[i] + " is clicked, but facedown");
+                        return -1;
+                    }
+                    
                 }
             }
 
-            // Return -1 on failure (shouldn't actually happen)
+            // Return -1 on failure
             return -1;
-        }
-
-        public override List<Card> RemoveCards(int num, bool fromFront = false)
-        {
-            List<Card> baseRemoved = base.RemoveCards(num, fromFront);
-
-            // TODO -- remove this, only flip top card if selection actually goes thorugh?
-            if (!this.IsEmpty() && !this.TopCard().IsUp)
-            {
-                this.TopCard().Flip();
-            }
-
-            return baseRemoved;
         }
     }
 }

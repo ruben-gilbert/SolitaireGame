@@ -180,7 +180,6 @@ namespace SolitaireGame
             // If the card is nested, only allow a subsection of it to be clicked
             if (this.IsNested)
             {
-                Console.WriteLine(this + "is nested");
                 return (this.x <= clickX && clickX <= this.x + xSep)
                     && (this.y <= clickY && clickY <= this.y + ySep);
             }
