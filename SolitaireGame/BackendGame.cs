@@ -81,7 +81,7 @@ namespace SolitaireGame
             for (int j = 1; j < 8; j++)
             {
                 Tableau t = new Tableau(tabX,
-                                    GameProperties.WINDOW_HEIGHT / 2,
+                                    GameProperties.TABLE_START,
                                     0,
                                     GameProperties.TABLE_CARD_SEPARATION,
                                     g);

@@ -342,10 +342,15 @@ namespace SolitaireGame
             return null;
         }
 
+        /// <summary>
+        /// Returns a <see cref="T:System.String"/> that represents the 
+        /// current <see cref="T:SolitaireGame.CardZone"/>.
+        /// </summary>
+        /// <returns>A <see cref="T:System.String"/> that represents the current 
+        /// <see cref="T:SolitaireGame.CardZone"/>.</returns>
         public override string ToString()
         {
-            // TODO -- format a nice string?
-            return "";
+            return "[" + String.Join(", ", this.cards) + "]";
         }
     }
 }

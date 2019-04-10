@@ -167,15 +167,5 @@ namespace SolitaireGame
 
             this.RealignCards(this.Size());
         }
-
-        /// <summary>
-        /// String representation of this Deck
-        /// </summary>
-        /// <returns>A string with comma separated Card representations</returns>
-        public override string ToString()
-        {
-            return "[" + String.Join(", ", this.cards) + "]";
-        }
-
     }
 }

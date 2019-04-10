@@ -18,6 +18,10 @@ namespace SolitaireGame
         {
         }
 
+        /// <summary>
+        /// Adds a list of Card objects to this Discard zone.
+        /// </summary>
+        /// <param name="c">Some List of Cards</param>
         public override void AddCards(List<Card> c)
         {
             
@@ -34,6 +38,10 @@ namespace SolitaireGame
             this.RealignCards(GameProperties.DEAL_MODE);
         }
 
+        /// <summary>
+        /// Draw the specified s.
+        /// </summary>
+        /// <param name="s">S.</param>
         public override void Draw(SpriteBatch s)
         {
             if (this.IsEmpty())
