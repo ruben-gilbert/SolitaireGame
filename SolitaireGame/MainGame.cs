@@ -38,8 +38,11 @@ namespace SolitaireGame
             //GameProperties.WINDOW_WIDTH = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
             //GameProperties.WINDOW_HEIGHT = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
 
-            GameProperties.WINDOW_WIDTH = 1280;
-            GameProperties.WINDOW_HEIGHT = 720;
+            int monitorWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+            int monitorHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+
+            GameProperties.WINDOW_WIDTH = monitorWidth > 1600 ? 1600 : monitorWidth;
+            GameProperties.WINDOW_HEIGHT = monitorHeight > 900 ? 900 : monitorHeight;
 
             // TODO make card sizes dynamic based on window size?
             // TODO make window size dynamic based on height of screen
@@ -170,16 +173,7 @@ namespace SolitaireGame
                 if (this.curState.LeftButton == ButtonState.Pressed &&
                     this.oldState.LeftButton == ButtonState.Released)
                 {
-                    /*
-                    if (this.clickTimer < timerDelay)
-                    {
-                        this.backendGame.HandleDoubleClick(curState.X, curState.Y);
-                    }
-                    */
-
-                    // TODO handle click for first time
                     this.backendGame.HandleMouseDown(this.curState.X, this.curState.Y);
-
                 }
 
                 // If the mouse button is released, handle either single- or double-click
@@ -188,12 +182,11 @@ namespace SolitaireGame
                 {
                     if (this.clickTimer <= GameProperties.DOUBLE_CLICK_SPEED)
                     {
-                        // TODO handle double click
+                        this.backendGame.Selection.ReturnToSource();
                         this.backendGame.HandleDoubleClick(this.curState.X, this.curState.Y);
                     }
                     else
                     {
-                        // TODO handle mouse being released
                         this.backendGame.HandleMouseUp(this.curState.X, this.curState.Y);
                     }
 

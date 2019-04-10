@@ -116,6 +116,20 @@ namespace SolitaireGame
         }
 
         /// <summary>
+        /// Shorthand method for getting the card at position 0.
+        /// </summary>
+        /// <returns>The Card object at position 0.</returns>
+        public Card BottomCard()
+        {
+            if (!this.IsEmpty())
+            {
+                return this.cards[0];
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Clears this Zone.
         /// </summary>
         public void Clear()
@@ -194,30 +208,39 @@ namespace SolitaireGame
         }
 
         /// <summary>
-        /// Checks if this Zone is empty.
-        /// </summary>
-        /// <returns><c>true</c>, if the Zone is empty, <c>false</c> otherwise.</returns>
-        public bool IsEmpty()
-        {
-            return this.cards.Count == 0;
-        }
-
-        /// <summary>
         /// Checks to see if a coordinate is within a valid range of the Zone.  Useful for
         /// determining if a selection can be placed into the Zone.
         /// </summary>
         /// <returns><c>true</c>, if the coordinates are in range, <c>false</c> otherwise.</returns>
         /// <param name="x">The x coordinate of the mouse</param>
         /// <param name="y">The y coordinate of the mouse</param>
-        public bool IsWithinRange(int x, int y)
+        public bool IsDroppedOn(int x, int y)
         {
             Debug.Assert(this is Tableau || this is Foundation);
 
-            // TODO does this need to be more accurate?
-            return this.TopCard().X <= x
+            if (this.IsEmpty())
+            {
+                return this.x <= x
+                       && x <= this.x + this.width
+                       && this.y <= y
+                       && y <= this.y + this.height;
+            }
+            else
+            {
+                return this.TopCard().X <= x
                    && x <= this.TopCard().X + this.TopCard().Width
                    && this.TopCard().Y <= y
                    && y <= this.TopCard().Y + this.TopCard().Height;
+            }
+        }
+
+        /// <summary>
+        /// Checks if this Zone is empty.
+        /// </summary>
+        /// <returns><c>true</c>, if the Zone is empty, <c>false</c> otherwise.</returns>
+        public bool IsEmpty()
+        {
+            return this.cards.Count == 0;
         }
 
         /// <summary>
@@ -238,10 +261,8 @@ namespace SolitaireGame
         /// of the Zone.
         /// <param name="num">The number of cards to realign</param>
         /// </summary>
-        public void RealignCards(int num)
+        public virtual void RealignCards(int num)
         {
-            Debug.Assert(!this.IsEmpty());
-
             if (this.Size() < num)
             {
                 num = this.Size();
@@ -316,11 +337,9 @@ namespace SolitaireGame
             {
                 return this.cards[this.Size() - 1];
             }
-            else
-            {
-                return null;
-            }
 
+
+            return null;
         }
 
         public override string ToString()

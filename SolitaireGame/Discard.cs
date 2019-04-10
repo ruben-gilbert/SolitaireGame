@@ -30,7 +30,6 @@ namespace SolitaireGame
                 }
             }
             
-            // TODO -- cards not realigning properly?
             base.AddCards(c);
             this.RealignCards(GameProperties.DEAL_MODE);
         }
@@ -69,6 +68,23 @@ namespace SolitaireGame
             }
 
             base.MoveCardsToZone(num, dst);
+
+            // Cleanup
+            if (dst is Selection)
+            {
+                this.RealignCards(GameProperties.DEAL_MODE - 1);
+            }
+        }
+
+        public override void RealignCards(int num)
+        {
+            for (int i = 0; i < this.Size() - num; i++)
+            {
+                this.cards[i].X = this.x;
+                this.cards[i].Y = this.y;
+            }
+
+            base.RealignCards(num);
         }
     }
 }

@@ -19,28 +19,69 @@ namespace SolitaireGame
         public Selection(int x, int y, int xSep, int ySep, GraphicsDevice g) :
             base(x, y, xSep, ySep, g)
         {
-            //this.relativeXOffset = 0;
-            //this.relativeYOffset = 0;
         }
 
-        // TODO -- any more to this method?
+        /// <summary>
+        /// Completes a move from this Selection to a target CardZone and handles any cleanup
+        /// required after the move.
+        /// </summary>
+        /// <param name="dst">The target CardZone of the move.</param>
         public void CompleteMove(CardZone dst)
         {
             // Perform move as normal
             this.MoveCardsToZone(this.Size(), dst);
 
             // Take care of any cleanup after the move
-            if (this.sourceZone is Tableau && !this.sourceZone.IsEmpty() 
-                && this.sourceZone.TopCard().IsUp)
+            if (this.sourceZone is Tableau)
             {
-                this.sourceZone.TopCard().Flip();
+                ((Tableau)this.sourceZone).Cleanup();
             }
-            else if (this.sourceZone is Discard && !this.sourceZone.IsEmpty())
+            else if (this.sourceZone is Discard)
             {
-                this.sourceZone.RealignCards(this.sourceZone.Size());
+                this.sourceZone.RealignCards(GameProperties.DEAL_MODE);
             }
 
             this.Reset();
+        }
+
+        /// <summary>
+        /// Checks if moving this selection to a target CardZone is valid.
+        /// </summary>
+        /// <param name="dst">The target CardZone.</param>
+        /// <returns>True if the move is valid, false otherwise.</returns>
+        public bool IsValidMove(CardZone dst)
+        {
+            if (dst is Foundation)
+            {
+                if (this.Size() == 1)
+                {
+                    if (dst.IsEmpty())
+                    {
+                        return this.TopCard().Val == 1;
+                    }
+                    else
+                    {
+                        return this.TopCard().IsSameSuit(dst.TopCard())
+                           && this.TopCard().Val == dst.TopCard().Val + 1;
+                    }  
+                }
+
+                return false;
+            }
+            else if (dst is Tableau)
+            {
+                if (dst.IsEmpty())
+                {
+                    return this.BottomCard().Val == 13;
+                }
+                else
+                {
+                    return this.BottomCard().IsOppositeSuit(dst.TopCard())
+                           && this.BottomCard().Val == dst.TopCard().Val - 1;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -59,6 +100,10 @@ namespace SolitaireGame
             this.relativeYOffset = this.y - clickY;
         }
 
+        /// <summary>
+        /// Properly sets this Selection's properties based on the CardZone is was selected from.
+        /// </summary>
+        /// <param name="source">The CardZone where this selection was taken from.</param>
         public void SetSourceZone(CardZone source)
         {
             this.sourceZone = source;
@@ -80,11 +125,16 @@ namespace SolitaireGame
             this.sourceZone = null;
         }
 
-        // TODO return to source method?
+        /// <summary>
+        /// Returns the Cards from this Selection to the source CardZone and clears this Selection.
+        /// </summary>
         public void ReturnToSource()
         {
-            this.MoveCardsToZone(this.Size(), this.sourceZone);
-            this.Reset();
+            if (!this.IsEmpty())
+            {
+                this.MoveCardsToZone(this.Size(), this.sourceZone);
+                this.Reset();
+            }
         }
 
         /// <summary>

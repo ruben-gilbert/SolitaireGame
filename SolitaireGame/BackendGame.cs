@@ -49,7 +49,7 @@ namespace SolitaireGame
                                 1,
                                 g,
                                 game);
-            //this.deck.Shuffle();
+            this.deck.Shuffle();
             this.board.Add(this.deck);
 
             this.discard = new Discard(GameProperties.DISCARD_XCOR,
@@ -96,6 +96,29 @@ namespace SolitaireGame
             this.score = 0;
         }
 
+        private void AutoPlayTopCard(CardZone src)
+        {
+            foreach (Foundation f in this.foundations)
+            {
+                // If the foundation is empty and we are trying to play an Ace OR the foundation
+                // is not empty and we are playing the next card that belongs in it, then succeed.
+                if ((f.IsEmpty() && src.TopCard().Val == 1) ||
+                    !f.IsEmpty() && src.TopCard().IsSameSuit(f.TopCard()) 
+                    && src.TopCard().Val == f.TopCard().Val + 1)
+                {
+                    src.MoveCardsToZone(1, f);
+                    if (src is Tableau)
+                    {
+                        ((Tableau)src).Cleanup();
+                    } else if (src is Discard)
+                    {
+                        ((Discard)src).RealignCards(GameProperties.DEAL_MODE);
+                    }
+                    return;
+                }
+            }
+        }
+
         /// <summary>
         /// Draw the game.  Ask each CardZone in the board to draw itself and, if there is a valid
         /// selection, draw it as well.
@@ -134,9 +157,30 @@ namespace SolitaireGame
 
         public void HandleDoubleClick(int x, int y)
         {
-            // TODO -- auto score card if only one is double-clicked
+            if (!this.discard.IsEmpty() &&
+                this.discard.TopCard().IsClicked(x, y, GameProperties.CARD_WIDTH, 
+                                                 GameProperties.CARD_HEIGHT))
+            {
+                this.AutoPlayTopCard(this.discard);
+                return;
+            }
+
+            foreach (Tableau t in this.tableaus)
+            {
+                if (!t.IsEmpty() && t.TopCard().IsClicked(x, y, GameProperties.CARD_WIDTH,
+                                                          GameProperties.CARD_HEIGHT))
+                {
+                    this.AutoPlayTopCard(t);
+                    return;
+                }
+            }
         }
 
+        /// <summary>
+        /// Handles mouse down events for this game.
+        /// </summary>
+        /// <param name="x">The x coordinate of the event.</param>
+        /// <param name="y">The y coordinate of the event.</param>
         public void HandleMouseDown(int x, int y)
         {
             
@@ -171,17 +215,37 @@ namespace SolitaireGame
             }
         }
 
+        /// <summary>
+        /// Handles mouse up events for this game.
+        /// </summary>
+        /// <param name="x">The x coordinate of the event.</param>
+        /// <param name="y">The y coordinate of the event.</param>
         public void HandleMouseUp(int x, int y)
         {
             // If the selection isn't empty, it's valid and we should consider playing it
             if (!this.selection.IsEmpty())
             {
-                // TODO handle playing the selection at the mouse's location
+                // Check if the move was played into one of the foundations
+                foreach (Foundation f in this.foundations)
+                {
+                    if (f.IsDroppedOn(x, y) && this.selection.IsValidMove(f))
+                    {
+                        this.selection.CompleteMove(f);
+                        return;
+                    }
+                }
 
-                // If placement is valid, play it
-                // concat tableaus and foundations?
+                // Check if the move was played into one of the tableaus
+                foreach (Tableau t in this.tableaus)
+                {
+                    if (t.IsDroppedOn(x, y) && this.selection.IsValidMove(t))
+                    {
+                        this.selection.CompleteMove(t);
+                        return;
+                    }
+                }
 
-                // otherwise, return to source
+                // If invalid move, return Cards to source Zone
                 this.selection.ReturnToSource();
             }
             else
@@ -206,6 +270,18 @@ namespace SolitaireGame
             }
         }
 
+        // TODO -- handle right click
+        public void HandleRightClick()
+        {
+
+        }
+
+        /// <summary>
+        /// Public facing method that allows this Game's Selection to update it's position
+        /// based on the (x, y) coordinates of the mouse.
+        /// </summary>
+        /// <param name="x">The mouse's x coordinate.</param>
+        /// <param name="y">The mouse's y coordinate.</param>
         public void UpdateSelection(int x, int y)
         {
             this.selection.UpdatePosition(x, y);

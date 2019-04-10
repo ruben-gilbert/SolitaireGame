@@ -19,6 +19,14 @@ namespace SolitaireGame
             // TODO update the y-separation of this Tableau if it exceeds bounds of the window?
         }
 
+        public void Cleanup()
+        {
+            if (!this.IsEmpty() && !this.TopCard().IsUp)
+            {
+                this.TopCard().Flip();
+            }
+        }
+
         public override int GetClicked(int x, int y)
         {
             for (int i = 0; i < this.Size(); i++)
