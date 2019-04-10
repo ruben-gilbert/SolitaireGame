@@ -36,5 +36,7 @@ namespace SolitaireGame
 
         public static int DEAL_MODE = 3;
         public static string CARD_COLOR = "purple";
+
+        public static int DOUBLE_CLICK_SPEED = 300;
     }
 }

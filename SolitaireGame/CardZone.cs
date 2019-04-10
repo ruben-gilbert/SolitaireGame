@@ -158,6 +158,13 @@ namespace SolitaireGame
             s.Draw(tex, new Rectangle(this.x, this.y + this.height, this.width, thickness), c);
         }
 
+        /// <summary>
+        /// Get the position of a clicked card in this CardZone.
+        /// </summary>
+        /// <returns>An integer representing the position of the clicked card with respect to the
+        /// end of the Zone.  Returns -1 if no valid card clicked.</returns>
+        /// <param name="x">The x coordinate of the click.</param>
+        /// <param name="y">The y coordinate of the click.</param>
         public virtual int GetClicked(int x, int y)
         {
             for (int i = 0; i < this.Size(); i++)
@@ -202,14 +209,15 @@ namespace SolitaireGame
         /// <returns><c>true</c>, if the coordinates are in range, <c>false</c> otherwise.</returns>
         /// <param name="x">The x coordinate of the mouse</param>
         /// <param name="y">The y coordinate of the mouse</param>
-        /// <param name="hDisplacement">The acceptable horizontal offset of the mouse</param>
-        /// <param name="vDisplacement">The acceptable vertical offset of the mouse</param>
-        public bool IsWithinRange(int x, int y, int hDisplacement, int vDisplacement)
+        public bool IsWithinRange(int x, int y)
         {
-            return (this.x - hDisplacement <= x) 
-                   && (x <= this.x + this.width + hDisplacement) 
-                   && (this.y - vDisplacement <= y)
-                   && (y <= this.y + this.height);
+            Debug.Assert(this is Tableau || this is Foundation);
+
+            // TODO does this need to be more accurate?
+            return this.TopCard().X <= x
+                   && x <= this.TopCard().X + this.TopCard().Width
+                   && this.TopCard().Y <= y
+                   && y <= this.TopCard().Y + this.TopCard().Height;
         }
 
         /// <summary>

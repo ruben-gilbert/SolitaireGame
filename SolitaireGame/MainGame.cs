@@ -27,11 +27,9 @@ namespace SolitaireGame
         private MouseState curState;
         private MouseState oldState;
         private double clickTimer;
-        private const double timerDelay = 300;
         private bool gameOver;
         private string endTime;
         private bool writtenToFile;
-        private bool selectionMade;
         
         public MainGame()
         {
@@ -103,7 +101,6 @@ namespace SolitaireGame
             this.clickTimer = 0;
             this.gameOver = false;
             this.writtenToFile = false;
-            this.selectionMade = false;
 
             base.Initialize();
         }
@@ -163,37 +160,44 @@ namespace SolitaireGame
                 this.curState = Mouse.GetState();
                 this.clickTimer += gameTime.ElapsedGameTime.TotalMilliseconds;
 
-                if (this.selectionMade)
+                // If there is a valid selection, make sure we update its location
+                if (!this.backendGame.Selection.IsEmpty())
                 {
                     this.backendGame.UpdateSelection(this.curState.X, this.curState.Y);
                 }
 
+                // If the left-mouse button is pushed down, prepare for a click 
                 if (this.curState.LeftButton == ButtonState.Pressed &&
                     this.oldState.LeftButton == ButtonState.Released)
                 {
-
+                    /*
                     if (this.clickTimer < timerDelay)
                     {
-                        // TODO handle double click
                         this.backendGame.HandleDoubleClick(curState.X, curState.Y);
                     }
-                    else
-                    {
-                        // TODO handle click for first time
-                        this.backendGame.HandleMouseDown(this.curState.X, this.curState.Y);
-                        this.selectionMade = true;
-                    }
+                    */
 
-                    // TODO -- should this go outside all if statements?
-                    this.clickTimer = 0;
+                    // TODO handle click for first time
+                    this.backendGame.HandleMouseDown(this.curState.X, this.curState.Y);
+
                 }
 
+                // If the mouse button is released, handle either single- or double-click
                 if (this.curState.LeftButton == ButtonState.Released &&
                     this.oldState.LeftButton == ButtonState.Pressed)
                 {
-                    // TODO handle mouse being released
-                    this.backendGame.HandleMouseUp(this.curState.X, this.curState.Y);
-                    this.selectionMade = false;
+                    if (this.clickTimer <= GameProperties.DOUBLE_CLICK_SPEED)
+                    {
+                        // TODO handle double click
+                        this.backendGame.HandleDoubleClick(this.curState.X, this.curState.Y);
+                    }
+                    else
+                    {
+                        // TODO handle mouse being released
+                        this.backendGame.HandleMouseUp(this.curState.X, this.curState.Y);
+                    }
+
+                    this.clickTimer = 0;
                 }
 
                 /*

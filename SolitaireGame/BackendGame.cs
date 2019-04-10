@@ -5,7 +5,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -27,6 +26,17 @@ namespace SolitaireGame
         {
             this.NewGame(g, game);
         }
+
+        // -----------------------------------------------------------------------------------------
+        // Getters / Setters
+
+        public Selection Selection
+        {
+            get { return this.selection; }
+        }
+
+        // -----------------------------------------------------------------------------------------
+        // Methods
 
         public void NewGame(GraphicsDevice g, MainGame game)
         {
@@ -150,7 +160,6 @@ namespace SolitaireGame
                 }
                 else
                 {
-                    // TODO -- make play into Selection?
                     int numToMove = clicked.GetClicked(x, y);
                     if (numToMove != -1)
                     {
@@ -160,7 +169,6 @@ namespace SolitaireGame
                     }
                 }
             }
-            
         }
 
         public void HandleMouseUp(int x, int y)
@@ -171,6 +179,7 @@ namespace SolitaireGame
                 // TODO handle playing the selection at the mouse's location
 
                 // If placement is valid, play it
+                // concat tableaus and foundations?
 
                 // otherwise, return to source
                 this.selection.ReturnToSource();
