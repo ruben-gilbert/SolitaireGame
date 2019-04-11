@@ -13,8 +13,16 @@ namespace SolitaireGame
 {
     public class Discard : CardZone
     {
-        public Discard(int x, int y, int xSep, int ySep, GraphicsDevice g) :
-            base(x, y, xSep, ySep, g)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:SolitaireGame.Discard"/> class.
+        /// </summary>
+        /// <param name="game">The BackendGame this Zone belongs to.</param>
+        /// <param name="x">The x coordinate of this Zone.</param>
+        /// <param name="y">The y coordinate of this Zone.</param>
+        /// <param name="xSep">Horizontal separation of cards in this Zone.</param>
+        /// <param name="ySep">Horizontal separation of cards in this Zone.</param>
+        public Discard(BackendGame game, int x, int y, int xSep, int ySep) :
+            base(game, x, y, xSep, ySep)
         {
         }
 
@@ -39,9 +47,9 @@ namespace SolitaireGame
         }
 
         /// <summary>
-        /// Draw the specified s.
+        /// Draws this Discard object (overrides the CardZone Draw method)
         /// </summary>
-        /// <param name="s">S.</param>
+        /// <param name="s">The SpriteBatch object used for drawing.</param>
         public override void Draw(SpriteBatch s)
         {
             if (this.IsEmpty())
@@ -64,6 +72,13 @@ namespace SolitaireGame
             }
         }
 
+        /// <summary>
+        /// Moves num number of cards to CardZone dst.  Relies on the base CardZone method, but
+        /// also handles moving cards back to the Deck and realigning the cards that should be
+        /// shown after removing them from the discard pile.
+        /// </summary>
+        /// <param name="num">The number of cards to be moved.</param>
+        /// <param name="dst">The destination CardZone object.</param>
         public override void MoveCardsToZone(int num, CardZone dst)
         {
             // If the destination is the deck, we need to make sure all cards are face down
@@ -84,6 +99,12 @@ namespace SolitaireGame
             }
         }
 
+        /// <summary>
+        /// Realign num number of cards at the back of the Discard pile.  Since we should only show
+        /// a specific number of cards, useful for making sure cards draw correctly.  Relies on the
+        /// base method to realign the remaining cards that are not the top few that should show.
+        /// </summary>
+        /// <param name="num">The number of cards that need realignment.</param>
         public override void RealignCards(int num)
         {
             for (int i = 0; i < this.Size() - num; i++)

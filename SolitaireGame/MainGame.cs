@@ -6,8 +6,8 @@
 using System;
 using System.IO;
 using System.Collections;
-using System.Threading;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -23,6 +23,7 @@ namespace SolitaireGame
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         BackendGame backendGame;
+        Animation animation;
         private SpriteFont font;
         private MouseState curState;
         private MouseState oldState;
@@ -96,8 +97,8 @@ namespace SolitaireGame
                 // add card color selection (and unload the card backs of other color?)
                 // button to show top scores?
 
-            this.backendGame = new BackendGame(GraphicsDevice, this);
-
+            this.backendGame = new BackendGame(this);
+            this.animation = null;
             this.IsMouseVisible = true;
             this.curState = Mouse.GetState();
             this.oldState = Mouse.GetState();
@@ -109,7 +110,7 @@ namespace SolitaireGame
         }
 
         /// <summary>
-        /// Loads the Card textures and finishes building the board
+        /// Creates the SpriteBatch for this game and initializes and content we need.
         /// </summary>
         protected override void LoadContent()
         {
@@ -118,17 +119,6 @@ namespace SolitaireGame
 
             // Create the SpriteFont object
             this.font = Content.Load<SpriteFont>("Victory");
-
-            /*
-            // Load the image textures for each Card
-            foreach (Card c in this.backendGame.GetDeck().GetCards())
-            {
-                c.LoadImages(this, GameProperties.CARD_COLOR);
-            }
-            */
-
-            // Build the board now that textures have been loaded
-            //this.backendGame.BuildBoard();
         }
 
         /// <summary>
@@ -147,7 +137,7 @@ namespace SolitaireGame
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-
+            // Check keyboard input
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
                 Exit();
@@ -157,8 +147,15 @@ namespace SolitaireGame
                 NewGame();
             }
 
+            /*
+            if (this.animation != null && !this.animation.Done())
+            {
+                this.animation.Update(gameTime.ElapsedGameTime.TotalMilliseconds);
+            }
+            */
 
-            if (!this.backendGame.GameOver())
+            // Main game check -- if game is not over or being auto-won, continue to allow playing.
+            if (!this.backendGame.IsWinnable && !this.backendGame.GameOver())
             {
                 this.curState = Mouse.GetState();
                 this.clickTimer += gameTime.ElapsedGameTime.TotalMilliseconds;
@@ -192,29 +189,38 @@ namespace SolitaireGame
 
                     this.clickTimer = 0;
                 }
-
-                /*
                 else if (this.curState.RightButton == ButtonState.Pressed &&
                         this.oldState.RightButton == ButtonState.Released)
                 {
-
+                    this.backendGame.HandleRightClick();
+                    /*
                     if (this.backendGame.CanAutoComplete())
                     {
                         Thread t = new Thread(this.backendGame.AutoComplete);
                         t.Start();
                     }
+                    */
 
                 }
-                */
 
                 this.oldState = curState;
             }
+            else if (this.backendGame.IsWinnable && !this.backendGame.GameOver())
+            {
+                // If the current animation is done, get a new card to animate
+                if (this.animation.Done())
+                {
+                    // TODO -- fix this????
+                    this.animation.Complete();
+                    Tuple<Tableau, Foundation> step = this.backendGame.NextAutoWinStep();
+                    this.animation = new Animation(this.backendGame, step.Item1, step.Item2, 1);
+                    this.animation.Start();
+                }
+            }
             else
             {
-                this.gameOver = true;
-                //this.endTime = DateTime.Now.ToShortDateString();
+                // Display "you win"
             }
-
 
             base.Update(gameTime);
         }
@@ -269,7 +275,7 @@ namespace SolitaireGame
             }
             */
 
-            this.backendGame.NewGame(GraphicsDevice, this);
+            this.backendGame.NewGame();
             this.gameOver = false;
             this.writtenToFile = false;
 

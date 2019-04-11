@@ -3,7 +3,6 @@
 // 2019
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
@@ -13,6 +12,7 @@ namespace SolitaireGame
 {
     public class CardZone
     {
+        protected BackendGame game;
         protected List<Card> cards;
         protected int x;
         protected int y;
@@ -25,12 +25,12 @@ namespace SolitaireGame
         /// <summary>
         /// Initializes a new instance of the <see cref="T:SolitaireGame.CardZone"/> class.
         /// </summary>
+        /// <param name="game">The game this object belongs to.</param>
         /// <param name="x">The x coordinate of this Zone.</param>
         /// <param name="y">The y coordinate of this Zone.</param>
-        /// <param name="xSep">X sep of cards in this Zone.</param>
-        /// <param name="ySep">Y sep of cards in this Zone.</param>
-        /// <param name="g">A GraphicsDevice that can produce Texture2D's.</param>
-        protected CardZone(int x, int y, int xSep, int ySep, GraphicsDevice g)
+        /// <param name="xSep">Horizontal separation of cards in this Zone.</param>
+        /// <param name="ySep">Vertical separation of cards in this Zone.</param>
+        protected CardZone(BackendGame game, int x, int y, int xSep, int ySep)
         {
             this.cards = new List<Card>();
             this.x = x;
@@ -39,7 +39,8 @@ namespace SolitaireGame
             this.height = GameProperties.CARD_HEIGHT;
             this.xSeparation = xSep;
             this.ySeparation = ySep;
-            blankBox = new Texture2D(g, 1, 1);
+            this.game = game;
+            blankBox = new Texture2D(this.game.Game.GraphicsDevice, 1, 1);
             blankBox.SetData(new[] { Color.White });
         }
 

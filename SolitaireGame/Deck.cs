@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace SolitaireGame
@@ -18,8 +17,8 @@ namespace SolitaireGame
         /// <summary>
         /// Initializes a new instance of the <see cref="T:SolitaireGame.Deck"/> class.
         /// </summary>
-        public Deck(int x, int y, int xSep, int ySep, GraphicsDevice g, MainGame game) : 
-            base(x, y, xSep, ySep, g)
+        public Deck(BackendGame game, int x, int y, int xSep, int ySep) : 
+            base(game, x, y, xSep, ySep)
         { 
 
             foreach (string suit in GameProperties.VALID_SUITS_ARRAY)
@@ -28,7 +27,7 @@ namespace SolitaireGame
                 for (int i = 1; i < 14; i++)
                 {
                     Card c = new Card(i, suit);
-                    c.LoadImage(game, GameProperties.CARD_COLOR);
+                    c.LoadImage(game.Game, GameProperties.CARD_COLOR);
                     currentSuit.Add(c);
                 }
 

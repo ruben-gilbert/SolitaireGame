@@ -38,5 +38,7 @@ namespace SolitaireGame
         public static string CARD_COLOR = "purple";
 
         public static int DOUBLE_CLICK_SPEED = 300;
+
+        public static double ANIMATION_TIME = 1.0;
     }
 }
