@@ -140,7 +140,11 @@ namespace SolitaireGame
         {
             if (!this.IsEmpty())
             {
-                this.MoveCardsToZone(this.Size(), this.sourceZone);
+                // TODO -- make positions more accurate so cards don't go to top of zone then scroll down
+
+                //this.MoveCardsToZone(this.Size(), this.sourceZone);
+                Tweener tween = new Tweener(this.game, this, this.sourceZone, this.Size());
+                this.game.AnimationAdd(tween);
                 this.Reset();
             }
         }

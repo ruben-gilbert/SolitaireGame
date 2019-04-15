@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace SolitaireGame
@@ -35,6 +36,26 @@ namespace SolitaireGame
             }
 
             this.isSelected = false;
+        }
+
+        /// <summary>
+        /// Draws this Deck.</summary>
+        /// <param name="s">A SpriteBatch object used for drawing in MonoGame.</param>
+        public override void Draw(SpriteBatch s)
+        {
+            // If no cards, draw a black box
+            if (this.IsEmpty())
+            {
+                // TODO -- Draw some kind of symbol to show the deck is empty
+                this.DrawEmptyZone(this.blankBox, s, 2, Color.Black);
+            }
+            else
+            {
+                foreach (Card card in this.cards)
+                {
+                    card.Draw(s, Color.White);
+                }
+            }
         }
 
         /// <summary>

@@ -21,6 +21,7 @@ namespace SolitaireGame
         private List<Foundation> foundations;
         private List<Tableau> tableaus;
         private List<CardZone> board;
+        private List<Tweener> animations;
         private int score;
         private MainGame mainGame;
         private bool isWinnable;
@@ -34,14 +35,19 @@ namespace SolitaireGame
         // -----------------------------------------------------------------------------------------
         // Getters / Setters
 
-        public bool IsWinnable
+        public List<Tweener> Animations
         {
-            get { return this.IsWinnable; }
+            get { return this.animations; }
         }
 
         public MainGame Game
         {
             get { return this.mainGame; }
+        }
+
+        public bool IsWinnable
+        {
+            get { return this.isWinnable; }
         }
 
         public Selection Selection
@@ -51,6 +57,16 @@ namespace SolitaireGame
 
         // -----------------------------------------------------------------------------------------
         // Methods
+
+        public void AnimationAdd(Tweener tween)
+        {
+            this.animations.Add(tween);
+        }
+
+        public void AnimationRemove(Tweener tween)
+        {
+            this.animations.Remove(tween);
+        }
 
         /// <summary>
         /// Autos scores the top card of some source CardZone
@@ -66,15 +82,9 @@ namespace SolitaireGame
                     !f.IsEmpty() && src.TopCard().IsSameSuit(f.TopCard()) 
                     && src.TopCard().Val == f.TopCard().Val + 1)
                 {
-                    // TODO -- animate this process?
-                    src.MoveCardsToZone(1, f);
-                    if (src is Tableau)
-                    {
-                        ((Tableau)src).Cleanup();
-                    } else if (src is Discard)
-                    {
-                        ((Discard)src).RealignCards(GameProperties.DEAL_MODE);
-                    }
+                    Tweener tween = new Tweener(this, src, f, 1);
+                    this.AnimationAdd(tween);
+
                     return;
                 }
             }
@@ -157,6 +167,15 @@ namespace SolitaireGame
             if (!this.selection.IsEmpty())
             {
                 this.selection.Draw(s);
+            }
+
+            // Draw anything that is currently animating
+            foreach (Tweener tween in this.animations)
+            {
+                if (tween.Valid)
+                {
+                    tween.Draw(s);
+                }
             }
         }
 
@@ -318,7 +337,7 @@ namespace SolitaireGame
                                 GameProperties.DECK_YCOR,
                                 1,
                                 1);
-            this.deck.Shuffle();
+            //this.deck.Shuffle();
             this.board.Add(this.deck);
 
             this.discard = new Discard(this,
@@ -361,6 +380,9 @@ namespace SolitaireGame
             }
 
             this.selection = new Selection(this, 0, 0, 0, 0);
+
+            //this.animation = new Tweener(this);
+            this.animations = new List<Tweener>();
 
             this.score = 0;
             this.isWinnable = false;

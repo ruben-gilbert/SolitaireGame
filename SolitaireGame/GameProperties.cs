@@ -39,6 +39,6 @@ namespace SolitaireGame
 
         public static int DOUBLE_CLICK_SPEED = 300;
 
-        public static double ANIMATION_TIME = 1.0;
+        public static float ANIMATION_SPEED = 0.1f;
     }
 }

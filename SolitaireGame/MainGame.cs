@@ -23,7 +23,6 @@ namespace SolitaireGame
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         BackendGame backendGame;
-        Animation animation;
         private SpriteFont font;
         private MouseState curState;
         private MouseState oldState;
@@ -98,7 +97,6 @@ namespace SolitaireGame
                 // button to show top scores?
 
             this.backendGame = new BackendGame(this);
-            this.animation = null;
             this.IsMouseVisible = true;
             this.curState = Mouse.GetState();
             this.oldState = Mouse.GetState();
@@ -147,12 +145,31 @@ namespace SolitaireGame
                 NewGame();
             }
 
-            /*
-            if (this.animation != null && !this.animation.Done())
+            // Check to see if we have any animations that need to be updated
+            if (this.backendGame.Animations.Count != 0)
             {
-                this.animation.Update(gameTime.ElapsedGameTime.TotalMilliseconds);
+                List<Tweener> toRemove = new List<Tweener>();
+
+                foreach (Tweener tween in this.backendGame.Animations)
+                {
+                    if (tween.Valid)
+                    {
+                        tween.Update(gameTime);
+                    }
+                    else
+                    {
+                        toRemove.Add(tween);
+                    }
+                }
+
+                if (toRemove.Count != 0)
+                {
+                    foreach (Tweener tween in toRemove)
+                    {
+                        this.backendGame.AnimationRemove(tween);
+                    }
+                }
             }
-            */
 
             // Main game check -- if game is not over or being auto-won, continue to allow playing.
             if (!this.backendGame.IsWinnable && !this.backendGame.GameOver())
@@ -193,28 +210,19 @@ namespace SolitaireGame
                         this.oldState.RightButton == ButtonState.Released)
                 {
                     this.backendGame.HandleRightClick();
-                    /*
-                    if (this.backendGame.CanAutoComplete())
-                    {
-                        Thread t = new Thread(this.backendGame.AutoComplete);
-                        t.Start();
-                    }
-                    */
-
                 }
 
                 this.oldState = curState;
             }
             else if (this.backendGame.IsWinnable && !this.backendGame.GameOver())
             {
-                // If the current animation is done, get a new card to animate
-                if (this.animation.Done())
+                // If we are able to auto-win and there are no cards currently being processed
+                // for winning, grad another card and start it animating
+                if (this.backendGame.Animations.Count == 0)
                 {
-                    // TODO -- fix this????
-                    this.animation.Complete();
                     Tuple<Tableau, Foundation> step = this.backendGame.NextAutoWinStep();
-                    this.animation = new Animation(this.backendGame, step.Item1, step.Item2, 1);
-                    this.animation.Start();
+                    Tweener tween = new Tweener(this.backendGame, step.Item1, step.Item2, 1);
+                    this.backendGame.AnimationAdd(tween);
                 }
             }
             else
