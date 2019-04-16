@@ -13,8 +13,8 @@ namespace SolitaireGame
         private CardZone target;
         private bool valid;
         private int numToMove;
-        public int xDistance;
-        public int yDistance;
+        private int targetX;
+        private int targetY;
         private float percentChange;
 
         public Tweener(BackendGame game) : 
@@ -70,15 +70,18 @@ namespace SolitaireGame
             this.x = this.source.Cards[this.source.Size() - numToMove].X;
             this.y = this.source.Cards[this.source.Size() - numToMove].Y;
 
-            this.xDistance = this.target.X - this.X;
-            this.yDistance = this.target.Y - this.Y;
+            this.targetX = this.target.TopCard() == null ?
+                this.target.X : this.target.TopCard().X + this.target.XSeparation;
+
+            this.targetY = this.target.TopCard() == null ?
+                this.target.Y : this.target.TopCard().Y + this.target.YSeparation;
 
             this.source.MoveCardsToZone(numToMove, this);
         }
 
         private void TestCompletion()
         {
-            if (this.X == this.target.X && this.Y == this.target.Y)
+            if (this.X == this.targetX && this.Y == this.targetY)
             {
                 this.MoveCardsToZone(this.numToMove, target);
                 this.Cleanup();
@@ -92,8 +95,8 @@ namespace SolitaireGame
             float rate = 1.0f / GameProperties.ANIMATION_SPEED;
             this.percentChange += delta * rate;
 
-            this.x = (int)Lerp(this.x, this.target.X, this.percentChange);
-            this.y = (int)Lerp(this.y, this.target.Y, this.percentChange);
+            this.x = (int)Lerp(this.x, this.targetX, this.percentChange);
+            this.y = (int)Lerp(this.y, this.targetY, this.percentChange);
 
             this.UpdateCardPositions();
 

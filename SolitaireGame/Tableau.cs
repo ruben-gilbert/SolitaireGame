@@ -57,12 +57,10 @@ namespace SolitaireGame
                 {
                     if (this.cards[i].IsUp)
                     {
-                        Console.WriteLine(cards[i] + " is clicked");
                         return this.Size() - i;
                     }
                     else
                     {
-                        Console.WriteLine(cards[i] + " is clicked, but facedown");
                         return -1;
                     }
                     

@@ -321,6 +321,7 @@ namespace SolitaireGame
             {
                 this.isWinnable = true;
             }
+            // TODO -- make auto scoring based on right click?
 
         }
 
@@ -337,7 +338,7 @@ namespace SolitaireGame
                                 GameProperties.DECK_YCOR,
                                 1,
                                 1);
-            //this.deck.Shuffle();
+            this.deck.Shuffle();
             this.board.Add(this.deck);
 
             this.discard = new Discard(this,
