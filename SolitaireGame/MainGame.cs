@@ -26,7 +26,6 @@ namespace SolitaireGame
         private SpriteFont font;
         private MouseState curState;
         private MouseState oldState;
-        private double clickTimer;
         private bool gameOver;
         private string endTime;
         private bool writtenToFile;
@@ -100,7 +99,6 @@ namespace SolitaireGame
             this.IsMouseVisible = true;
             this.curState = Mouse.GetState();
             this.oldState = Mouse.GetState();
-            this.clickTimer = 0;
             this.gameOver = false;
             this.writtenToFile = false;
 
@@ -175,7 +173,6 @@ namespace SolitaireGame
             if (!this.backendGame.IsWinnable && !this.backendGame.GameOver())
             {
                 this.curState = Mouse.GetState();
-                this.clickTimer += gameTime.ElapsedGameTime.TotalMilliseconds;
 
                 // If there is a valid selection, make sure we update its location
                 if (!this.backendGame.Selection.IsEmpty())
@@ -190,26 +187,16 @@ namespace SolitaireGame
                     this.backendGame.HandleMouseDown(this.curState.X, this.curState.Y);
                 }
 
-                // If the mouse button is released, handle either single- or double-click
+                // If the left or right mouse button is released, handle it
                 if (this.curState.LeftButton == ButtonState.Released &&
                     this.oldState.LeftButton == ButtonState.Pressed)
                 {
-                    if (this.clickTimer <= GameProperties.DOUBLE_CLICK_SPEED)
-                    {
-                        this.backendGame.Selection.ReturnToSource();
-                        this.backendGame.HandleDoubleClick(this.curState.X, this.curState.Y);
-                    }
-                    else
-                    {
-                        this.backendGame.HandleMouseUp(this.curState.X, this.curState.Y);
-                    }
-
-                    this.clickTimer = 0;
+                    this.backendGame.HandleMouseUp(this.curState.X, this.curState.Y);
                 }
                 else if (this.curState.RightButton == ButtonState.Pressed &&
                         this.oldState.RightButton == ButtonState.Released)
                 {
-                    this.backendGame.HandleRightClick();
+                    this.backendGame.HandleRightClick(this.curState.X, this.curState.Y);
                 }
 
                 this.oldState = curState;

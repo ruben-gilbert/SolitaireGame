@@ -105,6 +105,9 @@ namespace SolitaireGame
                 card.X = this.x + (this.Size() * this.xSeparation);
                 card.Y = this.y + (this.Size() * this.ySeparation);
 
+                // Update it's source
+                card.Source = this;
+
                 // Only update the width/height of the Zone when we start nesting cards
                 if (this.Size() > 0)
                 {

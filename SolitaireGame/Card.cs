@@ -21,6 +21,7 @@ namespace SolitaireGame
         private bool isNested;
         private Texture2D front;
         private Texture2D back;
+        private CardZone source;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:SolitaireGame.Card"/> class.
@@ -92,6 +93,12 @@ namespace SolitaireGame
         public bool IsUp
         {
             get { return this.isUp; }
+        }
+
+        public CardZone Source
+        {
+            get { return this.source; }
+            set { this.source = value; }
         }
 
         /// <summary>

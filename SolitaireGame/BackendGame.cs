@@ -72,17 +72,21 @@ namespace SolitaireGame
         /// Autos scores the top card of some source CardZone
         /// </summary>
         /// <param name="src">The source CardZone the Card is coming from.</param>
-        private void AutoPlayTopCard(CardZone src)
+        //private void AutoPlayTopCard(CardZone src)
+        private void AutoPlayCard(Card c)
         {
             foreach (Foundation f in this.foundations)
             {
                 // If the foundation is empty and we are trying to play an Ace OR the foundation
                 // is not empty and we are playing the next card that belongs in it, then succeed.
-                if ((f.IsEmpty() && src.TopCard().Val == 1) ||
-                    !f.IsEmpty() && src.TopCard().IsSameSuit(f.TopCard()) 
-                    && src.TopCard().Val == f.TopCard().Val + 1)
+                //if ((f.IsEmpty() && src.TopCard().Val == 1) ||
+                //    !f.IsEmpty() && src.TopCard().IsSameSuit(f.TopCard()) 
+                //    && src.TopCard().Val == f.TopCard().Val + 1)
+                if (f.IsEmpty() && c.Val == 1 ||
+                    !f.IsEmpty() && c.IsSameSuit(f.TopCard()) && c.Val == f.TopCard().Val + 1)
                 {
-                    Tweener tween = new Tweener(this, src, f, 1);
+                    //Tweener tween = new Tweener(this, src, f, 1);
+                    Tweener tween = new Tweener(this, c.Source, f, 1);
                     this.AnimationAdd(tween);
 
                     return;
@@ -196,32 +200,6 @@ namespace SolitaireGame
         }
 
         /// <summary>
-        /// Handles double-click events for this game.
-        /// </summary>
-        /// <param name="x">The x coordinate of the click.</param>
-        /// <param name="y">The y coordinate of the click.</param>
-        public void HandleDoubleClick(int x, int y)
-        {
-            if (!this.discard.IsEmpty() &&
-                this.discard.TopCard().IsClicked(x, y, GameProperties.CARD_WIDTH, 
-                                                 GameProperties.CARD_HEIGHT))
-            {
-                this.AutoPlayTopCard(this.discard);
-                return;
-            }
-
-            foreach (Tableau t in this.tableaus)
-            {
-                if (!t.IsEmpty() && t.TopCard().IsClicked(x, y, GameProperties.CARD_WIDTH,
-                                                          GameProperties.CARD_HEIGHT))
-                {
-                    this.AutoPlayTopCard(t);
-                    return;
-                }
-            }
-        }
-
-        /// <summary>
         /// Handles mouse down events for this game.
         /// </summary>
         /// <param name="x">The x coordinate of the click.</param>
@@ -315,14 +293,34 @@ namespace SolitaireGame
         /// <summary>
         /// Handles right-click events for this game.
         /// </summary>
-        public void HandleRightClick()
+        public void HandleRightClick(int x, int y)
         {
+            // If the game is winnable (and isn't already being auto-won), set it for completion
             if (!this.isWinnable && this.CanAutoWin())
             {
                 this.isWinnable = true;
             }
-            // TODO -- make auto scoring based on right click?
+            // Otherwise, if there are no animations being processed, try to auto play a card
+            else if (this.animations.Count == 0)
+            {
+                if (!this.discard.IsEmpty() &&
+                this.discard.TopCard().IsClicked(x, y, GameProperties.CARD_WIDTH,
+                                                 GameProperties.CARD_HEIGHT))
+                {
+                    this.AutoPlayCard(this.discard.TopCard());
+                    return;
+                }
 
+                foreach (Tableau t in this.tableaus)
+                {
+                    if (!t.IsEmpty() && t.TopCard().IsClicked(x, y, GameProperties.CARD_WIDTH,
+                                                              GameProperties.CARD_HEIGHT))
+                    {
+                        this.AutoPlayCard(t.TopCard());
+                        return;
+                    }
+                }
+            }
         }
 
         /// <summary>
