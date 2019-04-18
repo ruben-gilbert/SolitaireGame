@@ -186,15 +186,16 @@ namespace SolitaireGame
                 {
                     this.backendGame.HandleMouseDown(this.curState.X, this.curState.Y);
                 }
-
-                // If the left or right mouse button is released, handle it
-                if (this.curState.LeftButton == ButtonState.Released &&
+                // If the left mouse button is released, handle it
+                else if (this.curState.LeftButton == ButtonState.Released &&
                     this.oldState.LeftButton == ButtonState.Pressed)
                 {
                     this.backendGame.HandleMouseUp(this.curState.X, this.curState.Y);
                 }
+                // If the right mouse button is pressed AND the left mouse button isn't down
                 else if (this.curState.RightButton == ButtonState.Pressed &&
-                        this.oldState.RightButton == ButtonState.Released)
+                        this.oldState.RightButton == ButtonState.Released &&
+                        this.curState.LeftButton != ButtonState.Pressed)
                 {
                     this.backendGame.HandleRightClick(this.curState.X, this.curState.Y);
                 }
@@ -214,7 +215,7 @@ namespace SolitaireGame
             }
             else
             {
-                // Display "you win"
+                // TODO -- do the card "spilling" out of foundations animation?
             }
 
             base.Update(gameTime);
@@ -229,7 +230,7 @@ namespace SolitaireGame
             GraphicsDevice.Clear(Color.ForestGreen);
 
             spriteBatch.Begin();
-            this.backendGame.Draw(GraphicsDevice, this.spriteBatch);
+            this.backendGame.Draw(this.spriteBatch);
 
             /*
             if (this.gameOver)

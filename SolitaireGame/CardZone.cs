@@ -40,8 +40,8 @@ namespace SolitaireGame
             this.xSeparation = xSep;
             this.ySeparation = ySep;
             this.game = game;
-            blankBox = new Texture2D(this.game.Game.GraphicsDevice, 1, 1);
-            blankBox.SetData(new[] { Color.White });
+            this.blankBox = new Texture2D(this.game.Game.GraphicsDevice, 1, 1);
+            this.blankBox.SetData(new[] { Color.White });
         }
 
         // -----------------------------------------------------------------------------------------

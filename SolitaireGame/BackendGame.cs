@@ -26,6 +26,8 @@ namespace SolitaireGame
         private MainGame mainGame;
         private bool isWinnable;
 
+        private Button b;
+
         public BackendGame(MainGame game)
         {
             this.mainGame = game;
@@ -95,38 +97,6 @@ namespace SolitaireGame
         }
 
         /// <summary>
-        /// Generates the next step in auto-completing the current game.
-        /// </summary>
-        /// <returns>A 2-item Tuple containing the source Tableau and the 
-        /// target Foundation.</returns>
-        public Tuple<Tableau, Foundation> NextAutoWinStep()
-        {
-            // Find the foundation with the least cards
-            Foundation target = this.foundations[0];
-            for (int i = 1; i < this.foundations.Count; i++)
-            {
-                if (this.foundations[i].Size() < target.Size())
-                {
-                    target = this.foundations[i];
-                }
-            }
-
-            // Search the Tableaus for the card that belongs on the smallest foundation
-            foreach (Tableau source in this.tableaus)
-            {
-                if (!source.IsEmpty()
-                    && source.TopCard().IsSameSuit(target.TopCard())
-                    && source.TopCard().Val == target.TopCard().Val + 1)
-                {
-                    return new Tuple<Tableau, Foundation>(source, target);
-                }
-            }
-
-            // Shouldn't ever happen
-            return new Tuple<Tableau, Foundation>(null, null);
-        }
-
-        /// <summary>
         /// Checks to see if the game is currently in a state that can be auto-completed.
         /// </summary>
         /// <returns><c>true</c>, if game can be auto-won, <c>false</c> otherwise.</returns>
@@ -160,7 +130,7 @@ namespace SolitaireGame
         /// </summary>
         /// <param name="g">The GraphicsDevice for this game</param>
         /// <param name="s">The SpriteBatch object that will handle drawing.</param>
-        public void Draw(GraphicsDevice g, SpriteBatch s)
+        public void Draw(SpriteBatch s)
         { 
             foreach (CardZone cz in this.board)
             {
@@ -181,6 +151,8 @@ namespace SolitaireGame
                     tween.Draw(s);
                 }
             }
+
+            this.b.Draw(s);
         }
 
         /// <summary>
@@ -206,6 +178,13 @@ namespace SolitaireGame
         /// <param name="y">The y coordinate of the click.</param>
         public void HandleMouseDown(int x, int y)
         {
+
+            if (this.b.IsClicked(x, y))
+            {
+                this.b.OnPress();
+                return;
+            }
+
             CardZone clicked = null;
             foreach (CardZone zone in this.board)
             {
@@ -242,6 +221,15 @@ namespace SolitaireGame
         /// <param name="y">The y coordinate of the click.</param>
         public void HandleMouseUp(int x, int y)
         {
+            if (this.b.IsClicked(x, y))
+            {
+                this.b.OnRelease();
+            }
+            else if (this.b.Pressed)
+            {
+                this.b.Pressed = false;
+            }
+
             // If the selection isn't empty, it's valid and we should consider playing it
             if (!this.selection.IsEmpty())
             {
@@ -324,11 +312,45 @@ namespace SolitaireGame
         }
 
         /// <summary>
+        /// Generates the next step in auto-completing the current game.
+        /// </summary>
+        /// <returns>A 2-item Tuple containing the source Tableau and the 
+        /// target Foundation.</returns>
+        public Tuple<Tableau, Foundation> NextAutoWinStep()
+        {
+            // Find the foundation with the least cards
+            Foundation target = this.foundations[0];
+            for (int i = 1; i < this.foundations.Count; i++)
+            {
+                if (this.foundations[i].Size() < target.Size())
+                {
+                    target = this.foundations[i];
+                }
+            }
+
+            // Search the Tableaus for the card that belongs on the smallest foundation
+            foreach (Tableau source in this.tableaus)
+            {
+                if (!source.IsEmpty()
+                    && source.TopCard().IsSameSuit(target.TopCard())
+                    && source.TopCard().Val == target.TopCard().Val + 1)
+                {
+                    return new Tuple<Tableau, Foundation>(source, target);
+                }
+            }
+
+            // Shouldn't ever happen
+            return new Tuple<Tableau, Foundation>(null, null);
+        }
+
+        /// <summary>
         /// Creates a new game within this BackendGame object.
         /// </summary>
         public void NewGame()
         {
             // TODO add buttons and menus, etc?
+            this.b = new Button(this, "test", GameProperties.WINDOW_WIDTH / 2 - 100, 50, 50, 20);
+            this.b.SetAction(this.NewGame);
 
             this.board = new List<CardZone>();
             this.deck = new Deck(this,
@@ -380,7 +402,6 @@ namespace SolitaireGame
 
             this.selection = new Selection(this, 0, 0, 0, 0);
 
-            //this.animation = new Tweener(this);
             this.animations = new List<Tweener>();
 
             this.score = 0;
