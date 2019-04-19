@@ -23,7 +23,6 @@ namespace SolitaireGame
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         BackendGame backendGame;
-        private SpriteFont font;
         private MouseState curState;
         private MouseState oldState;
         private bool gameOver;
@@ -88,12 +87,12 @@ namespace SolitaireGame
         protected override void Initialize()
         {
             // TODO Use Myra UI (or some UI builder? emptykeys?) for the following:
-                // add resolution selections (720p, 1080p, fullscreen?)
-                // add new game button
-                // add cards per deal option
-                // main menu (number of cards to draw, instructions, etc)  -- or no?
-                // add card color selection (and unload the card backs of other color?)
-                // button to show top scores?
+            // add resolution selections (720p, 1080p, fullscreen?)
+            // add new game button
+            // add cards per deal option
+            // main menu (number of cards to draw, instructions, etc)  -- or no?
+            // add card color selection (and unload the card backs of other color?)
+            // button to show top scores?
 
             this.backendGame = new BackendGame(this);
             this.IsMouseVisible = true;
@@ -114,7 +113,7 @@ namespace SolitaireGame
             this.spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // Create the SpriteFont object
-            this.font = Content.Load<SpriteFont>("Victory");
+            //SpriteFont victoryFont = Content.Load<SpriteFont>("Victory");
         }
 
         /// <summary>

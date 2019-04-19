@@ -17,25 +17,19 @@ namespace SolitaireGame
         private Texture2D up;
         private Texture2D down;
         private SpriteFont font;
+        private Vector2 fontSize;
         private BackendGame game;
         private Action action;
 
-        public Button(BackendGame game, string label, int x, int y, int width, int height)
+        public Button(BackendGame game, string label, int x, int y)
         {
             this.label = label;
             this.x = x;
             this.y = y;
-            this.width = width;
-            this.height = height;
 
             this.pressed = false;
             this.game = game;
 
-            this.up = new Texture2D(this.game.Game.GraphicsDevice, 1, 1);
-            this.up.SetData(new[] { Color.White });
-
-            this.down = new Texture2D(this.game.Game.GraphicsDevice, 1, 1);
-            this.down.SetData(new[] { Color.Black });
         }
 
         // -----------------------------------------------------------------------------------------
@@ -52,14 +46,23 @@ namespace SolitaireGame
 
         public void Draw(SpriteBatch s)
         {
-            // TODO -- don't just draw empty boxes, draw the text and colors?
             if (this.pressed)
             {
-                this.DrawEmptyZone(this.down, s, 2, Color.White);
+                s.Draw(this.down, new Vector2(this.x, this.y), Color.White);
+                s.DrawString(this.font,
+                             this.label,
+                             new Vector2(this.x, this.y),
+                             Color.White);
+                //this.DrawEmptyZone(this.down, s, 2, Color.White);
             }
             else
             {
-                this.DrawEmptyZone(this.up, s, 2, Color.White);
+                s.Draw(this.up, new Vector2(this.x, this.y), Color.White);
+                s.DrawString(this.font,
+                             this.label,
+                             new Vector2(this.x, this.y),
+                             Color.Black);
+                //this.DrawEmptyZone(this.up, s, 2, Color.White);
             }
 
         }
@@ -76,6 +79,28 @@ namespace SolitaireGame
         {
             return this.x <= x && x <= this.x + this.width &&
                    this.y <= y && y <= this.y + this.height;
+        }
+
+        public void LoadFont(string fontName)
+        {
+            this.font = this.game.Game.Content.Load<SpriteFont>(fontName);
+            this.fontSize = this.font.MeasureString(this.label);
+            this.width = (int)this.fontSize.X;
+            this.height = (int)this.fontSize.Y;
+
+            this.up = new Texture2D(this.game.Game.GraphicsDevice, this.width, this.height);
+            this.down = new Texture2D(this.game.Game.GraphicsDevice, this.width, this.height);
+            Color[] upData = new Color[this.width * this.height];
+            Color[] downData = new Color[this.width * this.height];
+
+            for (int i = 0; i < upData.Length; i++)
+            {
+                upData[i] = Color.White;
+                downData[i] = Color.Black;
+            }
+
+            this.up.SetData(upData);
+            this.down.SetData(downData);
         }
 
         public void OnPress()

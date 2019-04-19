@@ -181,7 +181,8 @@ namespace SolitaireGame
         /// <returns><c>true</c>, if Card was clicked, <c>false</c> otherwise.</returns>
         /// <param name="clickX">X coordinate of click</param>
         /// <param name="clickY">Y coordinate of click</param>
-        /// <param name="separation">Separation between stacked cards</param>
+        /// <param name="xSep">Horizontal separation between stacked cards</param>
+        /// <param name="ySep">Vertical separation between stacked cards</param>
         public bool IsClicked(int clickX, int clickY, int xSep, int ySep)
         {
             // If the card is nested, only allow a subsection of it to be clicked

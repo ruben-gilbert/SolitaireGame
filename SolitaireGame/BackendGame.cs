@@ -73,8 +73,7 @@ namespace SolitaireGame
         /// <summary>
         /// Autos scores the top card of some source CardZone
         /// </summary>
-        /// <param name="src">The source CardZone the Card is coming from.</param>
-        //private void AutoPlayTopCard(CardZone src)
+        /// <param name="c">The card to be played</param>
         private void AutoPlayCard(Card c)
         {
             foreach (Foundation f in this.foundations)
@@ -128,7 +127,6 @@ namespace SolitaireGame
         /// Draw the game.  Ask each CardZone in the board to draw itself and, if there is a valid
         /// selection, draw it as well.
         /// </summary>
-        /// <param name="g">The GraphicsDevice for this game</param>
         /// <param name="s">The SpriteBatch object that will handle drawing.</param>
         public void Draw(SpriteBatch s)
         { 
@@ -349,8 +347,9 @@ namespace SolitaireGame
         public void NewGame()
         {
             // TODO add buttons and menus, etc?
-            this.b = new Button(this, "test", GameProperties.WINDOW_WIDTH / 2 - 100, 50, 50, 20);
+            this.b = new Button(this, "New Game", GameProperties.WINDOW_WIDTH / 2 - 100, 50);
             this.b.SetAction(this.NewGame);
+            this.b.LoadFont("Victory"); // TODO make new font for buttons (smaller)
 
             this.board = new List<CardZone>();
             this.deck = new Deck(this,
