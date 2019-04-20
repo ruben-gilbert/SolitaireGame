@@ -86,13 +86,6 @@ namespace SolitaireGame
         /// </summary>
         protected override void Initialize()
         {
-            // TODO Use Myra UI (or some UI builder? emptykeys?) for the following:
-            // add resolution selections (720p, 1080p, fullscreen?)
-            // add new game button
-            // add cards per deal option
-            // main menu (number of cards to draw, instructions, etc)  -- or no?
-            // add card color selection (and unload the card backs of other color?)
-            // button to show top scores?
 
             this.backendGame = new BackendGame(this);
             this.IsMouseVisible = true;

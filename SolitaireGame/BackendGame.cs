@@ -12,7 +12,10 @@ using Microsoft.Xna.Framework.Input;
 
 namespace SolitaireGame
 {
-
+    // TODO -- UPDATE EVERYTHING TO BE VECTORS
+    // TODO -- MAKE BLANK BOX TEXTURE ONCE AND ALLOW COMPONENTS TO ACCESS IT
+    // TODO -- START OF GAME DEALING ANIMATION?
+    // TODO -- auto-winning game breaks if there is an empty foundation
     public class BackendGame
     {
         private Deck deck;
@@ -347,9 +350,19 @@ namespace SolitaireGame
         public void NewGame()
         {
             // TODO add buttons and menus, etc?
-            this.b = new Button(this, "New Game", GameProperties.WINDOW_WIDTH / 2 - 100, 50);
+            this.b = new Button(this, 
+                                "New Game", 
+                                new Vector2(GameProperties.WINDOW_WIDTH / 2 - 100, 50));
             this.b.SetAction(this.NewGame);
-            this.b.LoadFont("Victory"); // TODO make new font for buttons (smaller)
+            this.b.LoadFont("Button"); 
+            
+            // TODO make new font for buttons (smaller)
+            // TODO add button popup when game is winnable?
+            // TODO undo/redo functionality?
+            // TODO resolution button/dropdown?
+            // TODO cards per deal dropdown?
+            // TODO card color drop down?
+
 
             this.board = new List<CardZone>();
             this.deck = new Deck(this,

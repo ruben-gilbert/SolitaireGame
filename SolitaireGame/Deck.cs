@@ -46,8 +46,17 @@ namespace SolitaireGame
             // If no cards, draw a black box
             if (this.IsEmpty())
             {
-                // TODO -- Draw some kind of symbol to show the deck is empty
-                this.DrawEmptyZone(this.blankBox, s, 2, Color.Black);
+                int lineWidth = 2;
+                
+                this.DrawEmptyZone(this.blankBox, s, lineWidth, Color.Black);
+                this.DrawLine(s, 
+                              new Vector2(this.x, this.y), 
+                              new Vector2(this.x + this.width, this.y + this.height),
+                              lineWidth);
+                this.DrawLine(s, 
+                              new Vector2(this.x, this.y + this.height), 
+                              new Vector2(this.x + this.width, this.y),
+                              lineWidth);
             }
             else
             {
@@ -56,6 +65,32 @@ namespace SolitaireGame
                     card.Draw(s, Color.White);
                 }
             }
+        }
+
+        /// <summary>
+        /// Draws a line between two points.
+        /// </summary>
+        /// <param name="s">SpriteBatch for drawing</param>
+        /// <param name="start">The starting coordinates of the line</param>
+        /// <param name="end">The ending coordinates of the line</param>
+        /// <param name="lineWidth">How thick the line should be</param>
+        private void DrawLine(SpriteBatch s, Vector2 start, Vector2 end, int lineWidth)
+        {
+            Vector2 edge = end - start;
+            float angle = (float)Math.Atan2(edge.Y, edge.X);
+
+            s.Draw(this.blankBox, 
+                   new Rectangle(
+                       (int)start.X + (lineWidth / 2), 
+                       (int)start.Y + (lineWidth / 2), 
+                       (int)edge.Length(), 
+                       lineWidth),
+                   null,
+                   Color.Black,
+                   angle,
+                   new Vector2(0, 0),
+                   SpriteEffects.None,
+                   0);
         }
 
         /// <summary>

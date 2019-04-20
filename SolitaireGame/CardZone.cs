@@ -16,8 +16,8 @@ namespace SolitaireGame
         protected List<Card> cards;
         protected int x;
         protected int y;
-        protected int width;  // potentially updated via method?
-        protected int height; // potentially updated via method?
+        protected int width;  // TODO potentially updated via method?
+        protected int height; // TODO potentially updated via method?
         protected int xSeparation;
         protected int ySeparation;
         protected Texture2D blankBox;

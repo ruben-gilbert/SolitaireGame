@@ -222,7 +222,12 @@ namespace SolitaireGame
         /// <returns>true if the suits are the same, false otherwise</returns>
         public bool IsSameSuit(Card other)
         {
-            return this.suit.Equals(other.Suit);
+            if (other != null)
+            {
+                return this.suit.Equals(other.Suit);
+            }
+
+            return false;
         }
 
         /// <summary>
