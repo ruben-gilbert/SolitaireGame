@@ -89,7 +89,7 @@ namespace SolitaireGame
             foreach (Card card in cards)
             {
                 // Update the card's position
-                card.Location = new Point(card.Location.X + (Count() * m_xSeparation), card.Location.Y + (Count() * m_ySeparation));
+                card.Location = new Point(Location.X + (Count() * m_xSeparation), Location.Y + (Count() * m_ySeparation));
                 //card.X = m_x + (Size() * xSeparation);
                 //card.Y = m_y + (Size() * ySeparation);
 

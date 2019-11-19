@@ -16,13 +16,12 @@ namespace SolitaireGame
         #endregion
 
         #region Enums
-        [Flags]
-        public enum Suits
+        [Flags] public enum Suits
         {
-            Diamonds = 1 << 0,
-            Hearts = 1 << 1,
-            Clubs = 1 << 2,
-            Spades = 1 << 3
+            Diamonds    = 1 << 0,
+            Hearts      = 1 << 1,
+            Clubs       = 1 << 2,
+            Spades      = 1 << 3
         };
         #endregion
 
@@ -166,8 +165,10 @@ namespace SolitaireGame
             }
             */
 
-            return Suit.Equals(Suits.Diamonds | Suits.Hearts) ?
-                other.Suit.Equals(Suits.Clubs | Suits.Spades) : other.Suit.Equals(Suits.Diamonds | Suits.Hearts);
+            // TODO -- kings can't be played on empty spots
+
+            return !Suit.HasFlag(Suits.Diamonds | Suits.Hearts) ?
+                !other.Suit.HasFlag(Suits.Clubs | Suits.Spades) : !other.Suit.HasFlag(Suits.Diamonds | Suits.Hearts);
         }
 
         /// <summary>
