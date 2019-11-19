@@ -1,72 +1,64 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 
 namespace SolitaireGame
 {
     class Button
     {
-        private Action action;
-        private Texture2D blankBox;
-        private Texture2D down;
-        private SpriteFont font;
-        private Vector2 fontSize;
-        private BackendGame game;
-        private int height;
-        private string label;
-        private Vector2 position;
-        private bool pressed;
-        private double scale;        
-        private Vector2 textPadding;
-        private Texture2D up;        
-        private int width;
+        #region Members
+        private Action m_action;
 
-        public Button(BackendGame game, string label, Vector2 position, double scale = 1.2)
+        private readonly BackendGame m_game;
+
+        private readonly double m_scale;
+
+        private Point m_location;
+
+        private SpriteFont m_font;
+
+        private readonly string m_label;
+
+        private Texture2D m_blankBox; // TODO -- define this in the BackendGame class?
+        private Texture2D m_down;
+        private Texture2D m_up;
+
+        private Vector2 m_fontSize;
+        private Vector2 m_size;
+        private Vector2 m_textPadding;
+        #endregion
+
+        #region Properties
+        public bool Pressed { get; set; }
+        #endregion
+
+        public Button(BackendGame game, string label, Point location, double scale = 1.2)
         {
-            this.label = label;
-            this.position = position;
-            this.scale = scale;
+            m_label = label;
+            m_location = location;
+            m_scale = scale;
 
-            this.pressed = false;
-            this.game = game;
+            Pressed = false;
+            m_game = game;
 
-            this.blankBox = new Texture2D(this.game.Game.GraphicsDevice, 1, 1);
-            this.blankBox.SetData(new[] { Color.White });
+            m_blankBox = new Texture2D(game.Game.GraphicsDevice, 1, 1);
+            m_blankBox.SetData(new[] { Color.White });
 
         }
 
-        // -----------------------------------------------------------------------------------------
-        // Getters / Setters
-
-        public bool Pressed
-        {
-            get { return this.pressed; }
-            set { this.pressed = value; }
-        }
-
-        // -----------------------------------------------------------------------------------------
-        // Methods
-
+        #region Methods
         public void Draw(SpriteBatch s)
         {
-            if (this.pressed)
+            if (Pressed)
             {
-                s.Draw(this.down, this.position, Color.White);
-                s.DrawString(this.font,
-                             this.label,
-                             this.position + this.textPadding,
-                             Color.White);
+                s.Draw(m_down, new Rectangle(m_location, m_size.ToPoint()), Color.White);
+                s.DrawString(m_font, m_label, new Vector2(m_location.X, m_location.Y) + m_textPadding, Color.White);
             }
             else
             {
-                s.Draw(this.up, this.position, Color.White);
+                s.Draw(m_up, new Rectangle(m_location, m_size.ToPoint()), Color.White);
                 DrawBorder(s, 2);
-                s.DrawString(this.font,
-                             this.label,
-                             this.position + this.textPadding,
-                             Color.Black);
+                s.DrawString(m_font, m_label, new Vector2(m_location.X, m_location.Y) + m_textPadding, Color.Black);
 
             }
 
@@ -74,95 +66,44 @@ namespace SolitaireGame
 
         protected void DrawEmptyZone(Texture2D tex, SpriteBatch s, int thickness, Color c)
         {
-            //s.Draw(tex, new Rectangle(this.x, this.y, thickness, this.height), c);
-            s.Draw(tex, 
-                   new Rectangle(
-                       (int)this.position.X, 
-                       (int)this.position.Y, 
-                       thickness, 
-                       this.height), 
-                   c);
-            s.Draw(tex, 
-                new Rectangle(
-                    (int)this.position.X + this.width, 
-                    (int)this.position.Y, 
-                    thickness, 
-                    this.height), 
-                c);
-            s.Draw(tex, 
-                new Rectangle(
-                    (int)this.position.X, 
-                    (int)this.position.Y, 
-                    this.width, 
-                    thickness), 
-                c);
-            s.Draw(tex, 
-                new Rectangle(
-                    (int)this.position.X, 
-                    (int)this.position.Y + this.height, 
-                    this.width, 
-                    thickness), 
-                c);
+            //s.Draw(tex, new Rectangle(x, y, thickness, height), c);
+            s.Draw(tex, new Rectangle(m_location.X, m_location.Y, thickness, m_size.ToPoint().Y), c);
+            s.Draw(tex, new Rectangle(m_location.X + m_size.ToPoint().X, m_location.Y, thickness, m_size.ToPoint().Y), c);
+            s.Draw(tex, new Rectangle(m_location.X, m_location.Y, m_size.ToPoint().X, thickness), c);
+            s.Draw(tex, new Rectangle(m_location.X, m_location.Y + m_size.ToPoint().Y, m_size.ToPoint().X, thickness), c);
         }
 
         // TODO -- edges aren't tight?
         protected void DrawBorder(SpriteBatch s, int thickness)
         {
-            Vector2 tRight = new Vector2(this.position.X + this.width, this.position.Y);
-            Vector2 bRight = new Vector2(this.position.X + this.width, this.position.Y + this.height);
-            Vector2 bLeft = new Vector2(this.position.X, this.position.Y + this.height);
+            Point topRight = new Point(m_location.X + m_size.ToPoint().X, m_location.Y);
+            Point bottomRight = new Point(m_location.X + m_size.ToPoint().X, m_location.Y + m_size.ToPoint().Y);
+            Point bottomLeft = new Point(m_location.X, m_location.Y + m_size.ToPoint().Y);
 
-            this.DrawLine(s, this.position, tRight, thickness);
-            this.DrawLine(s, tRight, bRight, thickness);
-            this.DrawLine(s, this.position, bLeft, thickness);
-            this.DrawLine(s, bLeft, bRight, thickness);
-        }
-
-        /// <summary>
-        /// Draws a line between two points.
-        /// </summary>
-        /// <param name="s">SpriteBatch for drawing</param>
-        /// <param name="start">The starting coordinates of the line</param>
-        /// <param name="end">The ending coordinates of the line</param>
-        /// <param name="lineWidth">How thick the line should be</param>
-        private void DrawLine(SpriteBatch s, Vector2 start, Vector2 end, int lineWidth)
-        {
-            Vector2 edge = end - start;
-            float angle = (float)Math.Atan2(edge.Y, edge.X);
-
-            s.Draw(this.blankBox,
-                   new Rectangle(
-                       (int)start.X,
-                       (int)start.Y,
-                       (int)edge.Length(),
-                       lineWidth),
-                   null,
-                   Color.Black,
-                   angle,
-                   new Vector2(0, 0),
-                   SpriteEffects.None,
-                   0);
+            m_game.DrawLine(s, m_location, topRight, thickness);
+            m_game.DrawLine(s, topRight, bottomRight, thickness);
+            m_game.DrawLine(s, m_location, bottomLeft, thickness);
+            m_game.DrawLine(s, bottomLeft, bottomRight, thickness);
         }
 
         public bool IsClicked(int x, int y)
         {
-            return this.position.X <= x && x <= this.position.X + this.width &&
-                   this.position.Y <= y && y <= this.position.Y + this.height;
+            return m_location.X <= x && x <= m_location.X + m_size.X &&
+                   m_location.Y <= y && y <= m_location.Y + m_size.Y;
         }
 
         public void LoadFont(string fontName)
         {
-            this.font = this.game.Game.Content.Load<SpriteFont>(fontName);
-            this.fontSize = this.font.MeasureString(this.label);
-            this.width = (int)(this.fontSize.X * this.scale);
-            this.height = (int)(this.fontSize.Y * this.scale);
-            this.textPadding = new Vector2((this.width - (int)this.fontSize.X) / 2,
-                                           (this.height - (int)this.fontSize.Y) / 2);
+            m_font = m_game.Game.Content.Load<SpriteFont>(fontName);
+            m_fontSize = m_font.MeasureString(m_label);
+            m_size.X = (int)(m_fontSize.X * m_scale);
+            m_size.Y = (int)(m_fontSize.Y * m_scale);
+            m_textPadding = new Vector2((m_size.X - (int)m_fontSize.X) / 2, (m_size.Y - (int)m_fontSize.Y) / 2);
 
-            this.up = new Texture2D(this.game.Game.GraphicsDevice, this.width, this.height);
-            this.down = new Texture2D(this.game.Game.GraphicsDevice, this.width, this.height);
-            Color[] upData = new Color[this.width * this.height];
-            Color[] downData = new Color[this.width * this.height];
+            m_up = new Texture2D(m_game.Game.GraphicsDevice, m_size.ToPoint().X, m_size.ToPoint().Y);
+            m_down = new Texture2D(m_game.Game.GraphicsDevice, m_size.ToPoint().X, m_size.ToPoint().Y);
+            Color[] upData = new Color[m_size.ToPoint().X * m_size.ToPoint().Y];
+            Color[] downData = new Color[m_size.ToPoint().X * m_size.ToPoint().Y];
 
             for (int i = 0; i < upData.Length; i++)
             {
@@ -170,28 +111,29 @@ namespace SolitaireGame
                 downData[i] = Color.Black;
             }
 
-            this.up.SetData(upData);
-            this.down.SetData(downData);
+            m_up.SetData(upData);
+            m_down.SetData(downData);
         }
 
         public void OnPress()
         {
-            this.pressed = true;
+            Pressed = true;
         }
 
         public void OnRelease()
         {
-            if (this.pressed)
+            if (Pressed)
             {
-                this.action();
+                m_action();
             }
 
-            this.pressed = false;
+            Pressed = false;
         }
 
         public void SetAction(Action action)
         {
-            this.action = action;
+            m_action = action;
         }
+        #endregion
     }
 }

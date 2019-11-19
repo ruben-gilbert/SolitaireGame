@@ -2,9 +2,7 @@
 // Author: Ruben Gilbert
 // 2019
 
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -13,37 +11,41 @@ namespace SolitaireGame
 {
     public class Discard : CardZone
     {
+        #region Constants
+        public readonly static int X = Deck.X + Card.Width + 30;
+        public readonly static int Y = Deck.Y;
+        public readonly static int Separation = 20;
+        #endregion
+
         /// <summary>
         /// Initializes a new instance of the <see cref="T:SolitaireGame.Discard"/> class.
         /// </summary>
         /// <param name="game">The BackendGame this Zone belongs to.</param>
-        /// <param name="x">The x coordinate of this Zone.</param>
-        /// <param name="y">The y coordinate of this Zone.</param>
+        /// <param name="location">The coordinates of this Zone.</param>
         /// <param name="xSep">Horizontal separation of cards in this Zone.</param>
         /// <param name="ySep">Horizontal separation of cards in this Zone.</param>
-        public Discard(BackendGame game, int x, int y, int xSep, int ySep) :
-            base(game, x, y, xSep, ySep)
+        public Discard(BackendGame game, Point location, int xSep, int ySep) :
+            base(game, location, xSep, ySep)
         {
         }
 
+        #region Methods
         /// <summary>
         /// Adds a list of Card objects to this Discard zone.
         /// </summary>
-        /// <param name="c">Some List of Cards</param>
-        public override void AddCards(List<Card> c)
-        {
-            
-            if (this.Size() > GameProperties.DEAL_MODE)
+        /// <param name="cards">Some List of Cards</param>
+        public override void AddCards(List<Card> cards)
+        { 
+            if (Count() > Properties.DealMode)
             {
-                for (int i = this.Size() - 1; i <= this.Size() - GameProperties.DEAL_MODE; i--)
+                for (int i = Count() - 1; i <= Count() - Properties.DealMode; i--)
                 {
-                    this.cards[i].X = this.x;
-                    this.cards[i].Y = this.y;
+                    m_cards[i].Location = Location;
                 }
             }
             
-            base.AddCards(c);
-            this.RealignCards(GameProperties.DEAL_MODE);
+            base.AddCards(cards);
+            RealignCards(Properties.DealMode);
         }
 
         /// <summary>
@@ -52,22 +54,22 @@ namespace SolitaireGame
         /// <param name="s">The SpriteBatch object used for drawing.</param>
         public override void Draw(SpriteBatch s)
         {
-            if (this.IsEmpty())
+            if (IsEmpty())
             {
-                this.DrawEmptyZone(this.blankBox, s, 2, Color.Black);
+                DrawEmptyZone(m_game.Game.BlankBox, s, 2, Color.Black);
             }
-            else if (this.Size() < GameProperties.DEAL_MODE)
+            else if (Count() < Properties.DealMode)
             {
-                foreach (Card c in this.cards)
+                foreach (Card c in m_cards)
                 {
                     c.Draw(s, Color.White);
                 }
             }
             else
             {
-                for (int i = this.Size() - GameProperties.DEAL_MODE; i < this.Size(); i++)
+                for (int i = Count() - Properties.DealMode; i < Count(); i++)
                 {
-                    this.cards[i].Draw(s, Color.White);
+                    m_cards[i].Draw(s, Color.White);
                 }
             }
         }
@@ -84,7 +86,7 @@ namespace SolitaireGame
             // If the destination is the deck, we need to make sure all cards are face down
             if (dst is Deck)
             {
-                foreach (Card card in this.cards)
+                foreach (Card card in m_cards)
                 {
                     card.MakeFaceDown();
                 }
@@ -95,7 +97,7 @@ namespace SolitaireGame
             // Cleanup
             if (dst is Selection)
             {
-                this.RealignCards(GameProperties.DEAL_MODE - 1);
+                RealignCards(Properties.DealMode - 1);
             }
         }
 
@@ -107,13 +109,13 @@ namespace SolitaireGame
         /// <param name="num">The number of cards that need realignment.</param>
         public override void RealignCards(int num)
         {
-            for (int i = 0; i < this.Size() - num; i++)
+            for (int i = 0; i < Count() - num; i++)
             {
-                this.cards[i].X = this.x;
-                this.cards[i].Y = this.y;
+                m_cards[i].Location = Location;
             }
 
             base.RealignCards(num);
         }
+        #endregion
     }
 }

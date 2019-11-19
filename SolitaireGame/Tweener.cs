@@ -9,48 +9,48 @@ namespace SolitaireGame
 {
     public class Tweener : CardZone
     {
-        private CardZone source;
-        private CardZone target;
-        private bool valid;
-        private int numToMove;
+        #region Members
+        private bool m_valid;
+
+        private CardZone m_source;
+        private CardZone m_target;
+
+        private float m_percentChange;
+
+        private int m_numToMove;
         private int targetX;
         private int targetY;
-        private float percentChange;
+        #endregion
+
+        #region Properties
+        public bool Valid
+        {
+            get => m_valid;
+        }
+        #endregion
 
         public Tweener(BackendGame game) : 
-            base(game, 0, 0, 0, 0)
+            base(game, new Point(0, 0), 0, 0)
         {
-            this.game = game;
-            this.valid = false;
+            m_valid = false;
         }
 
         public Tweener(BackendGame game, CardZone source, CardZone target, int numToMove) :
-            base(game, source.X, source.Y, source.XSeparation, source.YSeparation)
+            base(game, source.Location, source.XSeparation, source.YSeparation)
         {
-            this.game = game;
-            this.NewAnimation(source, target, numToMove);
+            NewAnimation(source, target, numToMove);
         }
 
-        // -----------------------------------------------------------------------------------------
-        // Getters / Setters
-
-        public bool Valid
-        {
-            get { return this.valid; }
-        }
-
-        // -----------------------------------------------------------------------------------------
-        // Methods
-
+        #region Methods
         private void Cleanup()
         {
-            if (this.source is Tableau)
+            if (m_source is Tableau)
             {
-                ((Tableau)this.source).Cleanup();
+                ((Tableau)m_source).Cleanup();
             }
-            else if (this.source is Discard)
+            else if (m_source is Discard)
             {
-                ((Discard)this.source).RealignCards(GameProperties.DEAL_MODE);
+                ((Discard)m_source).RealignCards(Properties.DealMode);
             }
         }
 
@@ -61,55 +61,51 @@ namespace SolitaireGame
 
         public void NewAnimation(CardZone source, CardZone target, int numToMove)
         {
-            this.valid = true;
-            this.source = source;
-            this.target = target;
-            this.numToMove = numToMove;
-            this.percentChange = 0;
+            m_valid = true;
+            m_source = source;
+            m_target = target;
+            m_numToMove = numToMove;
+            m_percentChange = 0;
 
-            this.x = this.source.Cards[this.source.Size() - numToMove].X;
-            this.y = this.source.Cards[this.source.Size() - numToMove].Y;
+            m_location = new Point(source.Cards[source.Count() - numToMove].Location.X,
+                source.Cards[source.Count() - numToMove].Location.Y);
 
-            this.targetX = this.target.TopCard() == null ?
-                this.target.X : this.target.TopCard().X + this.target.XSeparation;
+            targetX = target.TopCard() == null ? target.Location.X : target.TopCard().Location.X + target.XSeparation;
+            targetY = target.TopCard() == null ? target.Location.Y : target.TopCard().Location.Y + target.YSeparation;
 
-            this.targetY = this.target.TopCard() == null ?
-                this.target.Y : this.target.TopCard().Y + this.target.YSeparation;
-
-            this.source.MoveCardsToZone(numToMove, this);
+            source.MoveCardsToZone(numToMove, this);
         }
 
         private void TestCompletion()
         {
-            if (this.X == this.targetX && this.Y == this.targetY)
+            if (Location.X == targetX && Location.Y == targetY)
             {
-                this.MoveCardsToZone(this.numToMove, target);
-                this.Cleanup();
-                this.valid = false;
+                MoveCardsToZone(m_numToMove, m_target);
+                Cleanup();
+                m_valid = false;
             }
         }
 
         public void Update(GameTime time)
         {
             float delta = (float)time.ElapsedGameTime.TotalSeconds;
-            float rate = 1.0f / GameProperties.ANIMATION_SPEED;
-            this.percentChange += delta * rate;
+            float rate = 1.0f / Properties.AnimationSpeed;
+            m_percentChange += delta * rate;
 
-            this.x = (int)Lerp(this.x, this.targetX, this.percentChange);
-            this.y = (int)Lerp(this.y, this.targetY, this.percentChange);
+            m_location = new Point((int)Lerp(Location.X, targetX, m_percentChange), 
+                (int)Lerp(Location.Y, targetY, m_percentChange));
 
-            this.UpdateCardPositions();
-
-            this.TestCompletion();
+            UpdateCardPositions();
+            TestCompletion();
         }
 
         private void UpdateCardPositions()
         {
-            for (int i = 0; i < this.Size(); i++)
+            for (int i = 0; i < Count(); i++)
             {
-                this.cards[i].X = this.x + (this.xSeparation * i);
-                this.cards[i].Y = this.Y + (this.ySeparation * i);
+                m_cards[i].Location = new Point(Location.X + (m_xSeparation * i), Location.Y + (m_ySeparation * i));
             }
         }
+        #endregion
     }
 }

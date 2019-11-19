@@ -15,20 +15,20 @@ namespace SolitaireGame
 
         public HighScore(int score, string date)
         {
-            this.score = score;
-            this.date = date;
+            score = score;
+            date = date;
         }
 
         public int Score
         {
-            set { this.score = value; }
-            get { return this.score; }
+            set { score = value; }
+            get { return score; }
         }
 
         public string Date
         {
-            set { this.date = value; }
-            get { return this.date; }
+            set { date = value; }
+            get { return date; }
         }
 
         public int CompareTo(object obj)
@@ -40,7 +40,7 @@ namespace SolitaireGame
 
             if (other != null)
             {
-                return this.score.CompareTo(other.Score);
+                return score.CompareTo(other.Score);
             } else
             {
                 throw new ArgumentException("Object is not a HighScore object");
@@ -49,7 +49,7 @@ namespace SolitaireGame
 
         public override string ToString()
         {
-            return this.score + "," + this.date;
+            return score + "," + date;
         }
 
         public static string ConvertHighScoreToString(HighScore h)

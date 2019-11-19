@@ -12,110 +12,98 @@ namespace SolitaireGame
 {
     public class CardZone
     {
-        protected BackendGame game;
-        protected List<Card> cards;
-        protected int x;
-        protected int y;
-        protected int width;  // TODO potentially updated via method?
-        protected int height; // TODO potentially updated via method?
-        protected int xSeparation;
-        protected int ySeparation;
-        protected Texture2D blankBox;
+        #region Members
+        protected BackendGame m_game;
+
+        protected List<Card> m_cards;
+
+        protected Point m_location;
+
+        protected int m_xSeparation;
+        protected int m_ySeparation;
+
+        protected Vector2 m_size;
+        #endregion
+
+        #region Properties
+        public List<Card> Cards
+        {
+            get { return m_cards; }
+        }
+
+        public Point Location
+        {
+            get => m_location;
+
+        }
+
+        public Vector2 Size
+        {
+            get => m_size;
+            set => m_size = value;
+        }
+
+        public int XSeparation
+        {
+            get => m_xSeparation;
+        }
+
+        public int YSeparation
+        {
+            get => m_ySeparation;
+        }
+        #endregion
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:SolitaireGame.CardZone"/> class.
         /// </summary>
         /// <param name="game">The game this object belongs to.</param>
-        /// <param name="x">The x coordinate of this Zone.</param>
-        /// <param name="y">The y coordinate of this Zone.</param>
+        /// <param name="location">The coordinates of this Zone.</param>
         /// <param name="xSep">Horizontal separation of cards in this Zone.</param>
         /// <param name="ySep">Vertical separation of cards in this Zone.</param>
-        protected CardZone(BackendGame game, int x, int y, int xSep, int ySep)
+        protected CardZone(BackendGame game, Point location, int xSep, int ySep)
         {
-            this.cards = new List<Card>();
-            this.x = x;
-            this.y = y;
-            this.width = GameProperties.CARD_WIDTH;
-            this.height = GameProperties.CARD_HEIGHT;
-            this.xSeparation = xSep;
-            this.ySeparation = ySep;
-            this.game = game;
-            this.blankBox = new Texture2D(this.game.Game.GraphicsDevice, 1, 1);
-            this.blankBox.SetData(new[] { Color.White });
+            m_cards = new List<Card>();
+            m_location = location;
+            m_size = new Vector2(Card.Width, Card.Height);
+            m_xSeparation = xSep;
+            m_ySeparation = ySep;
+            m_game = game;
         }
 
-        // -----------------------------------------------------------------------------------------
-        // Getters / Setters
-
-        public List<Card> Cards
-        {
-            get { return this.cards; }
-        }
-
-        public int X
-        {
-            get { return this.x; }
-        }
-
-        public int Y
-        {
-            get { return this.y; }
-        }
-
-        public int Width
-        {
-            get { return this.width; }
-        }
-
-        public int Height
-        {
-            get { return this.height; }
-        }
-
-        public int XSeparation
-        {
-            get { return this.xSeparation; }
-        }
-
-        public int YSeparation
-        {
-            get { return this.ySeparation; }
-        }
-
-        // -----------------------------------------------------------------------------------------
-        // Methods
-
+        #region Methods
         /// <summary>
         /// Add cards to this Zone.  Ensures that inner-cards become nested and update their
         /// x, y locations.  Also updates the width/height of this Zone.
         /// </summary>
-        /// <param name="c">A List of one or more cards to be added to this Zone.</param>
-        public virtual void AddCards(List<Card> c)
+        /// <param name="cards">A List of one or more cards to be added to this Zone.</param>
+        public virtual void AddCards(List<Card> cards)
         {
 
             // Make sure to nest the top card
-            if (!this.IsEmpty())
+            if (!IsEmpty())
             {
-                this.cards[this.Size() - 1].Nest();
+                m_cards[Count() - 1].Nest();
             }
 
-            foreach (Card card in c)
+            foreach (Card card in cards)
             {
                 // Update the card's position
-                card.X = this.x + (this.Size() * this.xSeparation);
-                card.Y = this.y + (this.Size() * this.ySeparation);
+                card.Location = new Point(card.Location.X + (Count() * m_xSeparation), card.Location.Y + (Count() * m_ySeparation));
+                //card.X = m_x + (Size() * xSeparation);
+                //card.Y = m_y + (Size() * ySeparation);
 
                 // Update it's source
                 card.Source = this;
 
                 // Only update the width/height of the Zone when we start nesting cards
-                if (this.Size() > 0)
+                if (Count() > 0)
                 {
-                    this.height += this.ySeparation;
-                    this.width += this.xSeparation;
+                    m_size.X += m_xSeparation;
+                    m_size.Y += m_ySeparation;
                 }
 
-                this.cards.Add(card);
+                m_cards.Add(card);
             }
         }
 
@@ -125,9 +113,9 @@ namespace SolitaireGame
         /// <returns>The Card object at position 0.</returns>
         public Card BottomCard()
         {
-            if (!this.IsEmpty())
+            if (!IsEmpty())
             {
-                return this.cards[0];
+                return m_cards[0];
             }
 
             return null;
@@ -138,7 +126,16 @@ namespace SolitaireGame
         /// </summary>
         public void Clear()
         {
-            this.cards.Clear();
+            m_cards.Clear();
+        }
+
+        /// <summary>
+        /// Gets the number of cards in this CardZone
+        /// </summary>
+        /// <returns>The number of cards in this CardZone.</returns>
+        public int Count()
+        {
+            return m_cards.Count;
         }
 
         /// <summary>
@@ -148,13 +145,13 @@ namespace SolitaireGame
         public virtual void Draw(SpriteBatch s)
         {
             // If no cards, draw a black box
-            if (this.IsEmpty())
+            if (IsEmpty())
             {
-                this.DrawEmptyZone(this.blankBox, s, 2, Color.Black);
+                DrawEmptyZone(m_game.Game.BlankBox, s, 2, Color.Black);
             }
             else
             {
-                foreach (Card card in this.cards) 
+                foreach (Card card in m_cards) 
                 {
                     card.Draw(s, Color.White);
                 }
@@ -170,10 +167,10 @@ namespace SolitaireGame
         /// <param name="c">The color of the border of the box</param>
         protected void DrawEmptyZone(Texture2D tex, SpriteBatch s, int thickness, Color c)
         {
-            s.Draw(tex, new Rectangle(this.x, this.y, thickness, this.height), c);
-            s.Draw(tex, new Rectangle(this.x + this.width, this.y, thickness, this.height), c);
-            s.Draw(tex, new Rectangle(this.x, this.y, this.width, thickness), c);
-            s.Draw(tex, new Rectangle(this.x, this.y + this.height, this.width, thickness), c);
+            s.Draw(tex, new Rectangle(Location.X, Location.Y, thickness, Size.ToPoint().Y), c);
+            s.Draw(tex, new Rectangle(Location.X + Size.ToPoint().X, Location.Y, thickness, Size.ToPoint().Y), c);
+            s.Draw(tex, new Rectangle(Location.X, Location.Y, Size.ToPoint().X, thickness), c);
+            s.Draw(tex, new Rectangle(Location.X, Location.Y + Size.ToPoint().Y, Size.ToPoint().X, thickness), c);
         }
 
         /// <summary>
@@ -185,11 +182,11 @@ namespace SolitaireGame
         /// <param name="y">The y coordinate of the click.</param>
         public virtual int GetClicked(int x, int y)
         {
-            for (int i = 0; i < this.Size(); i++)
+            for (int i = 0; i < Count(); i++)
             {
-                if (this.cards[i].IsClicked(x, y, this.xSeparation, this.ySeparation))
+                if (m_cards[i].IsClicked(x, y, m_xSeparation, m_ySeparation))
                 {
-                    return this.Size() - i;
+                    return Count() - i;
                 }
             }
 
@@ -205,10 +202,8 @@ namespace SolitaireGame
         /// <param name="y">The y coordinate of the click</param>
         public virtual bool IsClicked(int x, int y)
         {
-            return this.x <= x
-                   && x <= this.x + this.width
-                   && this.y <= y
-                   && y <= this.y + this.Height;
+            return Location.X <= x && x <= Location.X + Size.ToPoint().X
+                && Location.Y <= y && y <= Location.Y + Size.ToPoint().Y;
         }
 
         /// <summary>
@@ -222,19 +217,15 @@ namespace SolitaireGame
         {
             Debug.Assert(this is Tableau || this is Foundation);
 
-            if (this.IsEmpty())
+            if (IsEmpty())
             {
-                return this.x <= x
-                       && x <= this.x + this.width
-                       && this.y <= y
-                       && y <= this.y + this.height;
+                return Location.X <= x && x <= Location.X + Size.ToPoint().X
+                       && y <= Location.Y && y <= Location.Y + Size.ToPoint().Y;
             }
             else
             {
-                return this.TopCard().X <= x
-                   && x <= this.TopCard().X + this.TopCard().Width
-                   && this.TopCard().Y <= y
-                   && y <= this.TopCard().Y + this.TopCard().Height;
+                return TopCard().Location.X <= x && x <= TopCard().Location.X + TopCard().Size.ToPoint().X
+                   && TopCard().Location.Y <= y && y <= TopCard().Location.Y + TopCard().Size.ToPoint().Y;
             }
         }
 
@@ -244,7 +235,7 @@ namespace SolitaireGame
         /// <returns><c>true</c>, if the Zone is empty, <c>false</c> otherwise.</returns>
         public bool IsEmpty()
         {
-            return this.cards.Count == 0;
+            return m_cards.Count == 0;
         }
 
         /// <summary>
@@ -254,9 +245,9 @@ namespace SolitaireGame
         /// <param name="dst">The destination CardZone to put the cards.</param>
         public virtual void MoveCardsToZone(int num, CardZone dst)
         {
-            Debug.Assert(num >= 0 && num <= this.Size());
+            Debug.Assert(num >= 0 && num <= Count());
 
-            dst.AddCards(this.RemoveCards(num));
+            dst.AddCards(RemoveCards(num));
         }
 
         /// <summary>
@@ -267,16 +258,15 @@ namespace SolitaireGame
         /// </summary>
         public virtual void RealignCards(int num)
         {
-            if (this.Size() < num)
+            if (Count() < num)
             {
-                num = this.Size();
+                num = Count();
             }
 
             for (int i = 0; i < num; i++)
             {
-                int location = this.Size() + i - num;
-                this.cards[location].X = this.x + (i * this.xSeparation);
-                this.cards[location].Y = this.y + (i * this.ySeparation);
+                int location = Count() + i - num;
+                m_cards[location].Location = new Point(m_location.X + (i * m_xSeparation), m_location.Y + (i * m_ySeparation));
             }
         }
 
@@ -301,34 +291,24 @@ namespace SolitaireGame
             } 
             else
             {
-                location = this.Size() - num;
+                location = Count() - num;
             }
 
-            List<Card> removed = this.cards.GetRange(location, num);
-            this.cards.RemoveRange(location, num);
-            this.height -= num * this.ySeparation;
-            this.width -= num * this.xSeparation;
+            List<Card> removed = m_cards.GetRange(location, num);
+            m_cards.RemoveRange(location, num);
+            m_size.X -= num * m_xSeparation;
+            m_size.Y -= num * m_ySeparation;
 
-            if (!this.IsEmpty())
+            if (!IsEmpty())
             {
-                this.TopCard().UnNest();
+                TopCard().UnNest();
             }
             else
             {
-                this.width = GameProperties.CARD_WIDTH;
-                this.height = GameProperties.CARD_HEIGHT;
+                m_size = new Vector2(Card.Width, Card.Height);
             }
 
             return removed;
-        }
-
-        /// <summary>
-        /// Number of cards in this Zone
-        /// </summary>
-        /// <returns>The number of cards in this Zone.</returns>
-        public int Size()
-        {
-            return this.cards.Count;
         }
 
         /// <summary>
@@ -337,9 +317,9 @@ namespace SolitaireGame
         /// <returns>The card in the last position of the Zone</returns>
         public Card TopCard()
         {
-            if (!this.IsEmpty())
+            if (!IsEmpty())
             {
-                return this.cards[this.Size() - 1];
+                return m_cards[Count() - 1];
             }
 
 
@@ -354,7 +334,8 @@ namespace SolitaireGame
         /// <see cref="T:SolitaireGame.CardZone"/>.</returns>
         public override string ToString()
         {
-            return "[" + String.Join(", ", this.cards) + "]";
+            return "[" + String.Join(", ", m_cards) + "]";
         }
+        #endregion
     }
 }

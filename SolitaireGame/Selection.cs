@@ -2,33 +2,31 @@
 // Author: Ruben Gilbert
 // 2019
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace SolitaireGame
 {
     public class Selection : CardZone
     {
-        protected CardZone sourceZone;
-        protected int relativeXOffset;
-        protected int relativeYOffset;
+        #region Members
+        protected CardZone m_sourceZone;
+        protected int m_relativeXOffset;
+        protected int m_relativeYOffset;
+        #endregion
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:SolitaireGame.Selection"/> class.
         /// </summary>
         /// <param name="game">The BackendGame this Zone belongs to.</param>
-        /// <param name="x">The x coordinate of this Zone.</param>
-        /// <param name="y">The y coordinate of this Zone.</param>
+        /// <param name="location">The coordinates of this Zone.</param>
         /// <param name="xSep">Horizontal separation of cards in this Zone.</param>
         /// <param name="ySep">Horizontal separation of cards in this Zone.</param>
-        public Selection(BackendGame game, int x, int y, int xSep, int ySep) :
-            base(game, x, y, xSep, ySep)
+        public Selection(BackendGame game, Point location, int xSep, int ySep) :
+            base(game, location, xSep, ySep)
         {
         }
 
+        #region Methods
         /// <summary>
         /// Completes a move from this Selection to a target CardZone and handles any cleanup
         /// required after the move.
@@ -37,19 +35,19 @@ namespace SolitaireGame
         public void CompleteMove(CardZone dst)
         {
             // Perform move as normal
-            this.MoveCardsToZone(this.Size(), dst);
+            MoveCardsToZone(Count(), dst);
 
             // Take care of any cleanup after the move
-            if (this.sourceZone is Tableau)
+            if (m_sourceZone is Tableau)
             {
-                ((Tableau)this.sourceZone).Cleanup();
+                ((Tableau)m_sourceZone).Cleanup();
             }
-            else if (this.sourceZone is Discard)
+            else if (m_sourceZone is Discard)
             {
-                this.sourceZone.RealignCards(GameProperties.DEAL_MODE);
+                m_sourceZone.RealignCards(Properties.DealMode);
             }
 
-            this.Reset();
+            Reset();
         }
 
         /// <summary>
@@ -61,16 +59,16 @@ namespace SolitaireGame
         {
             if (dst is Foundation)
             {
-                if (this.Size() == 1)
+                if (Count() == 1)
                 {
                     if (dst.IsEmpty())
                     {
-                        return this.TopCard().Val == 1;
+                        return TopCard().Value == 1;
                     }
                     else
                     {
-                        return this.TopCard().IsSameSuit(dst.TopCard())
-                           && this.TopCard().Val == dst.TopCard().Val + 1;
+                        return TopCard().IsSameSuit(dst.TopCard())
+                           && TopCard().Value == dst.TopCard().Value + 1;
                     }  
                 }
 
@@ -80,12 +78,12 @@ namespace SolitaireGame
             {
                 if (dst.IsEmpty())
                 {
-                    return this.BottomCard().Val == 13;
+                    return BottomCard().Value == 13;
                 }
                 else
                 {
-                    return this.BottomCard().IsOppositeSuit(dst.TopCard())
-                           && this.BottomCard().Val == dst.TopCard().Val - 1;
+                    return BottomCard().IsOppositeSuit(dst.TopCard())
+                           && BottomCard().Value == dst.TopCard().Value - 1;
                 }
             }
 
@@ -102,10 +100,10 @@ namespace SolitaireGame
         /// <param name="clickY">Click y.</param>
         public void SetRelativeOffsets(int numToMove, int clickX, int clickY)
         {
-            this.x = this.sourceZone.Cards[this.sourceZone.Size() - numToMove].X;
-            this.y = this.sourceZone.Cards[this.sourceZone.Size() - numToMove].Y;
-            this.relativeXOffset = this.x - clickX;
-            this.relativeYOffset = this.y - clickY;
+            m_location = new Point(m_sourceZone.Cards[m_sourceZone.Count() - numToMove].Location.X,
+                m_sourceZone.Cards[m_sourceZone.Count() - numToMove].Location.Y);
+            m_relativeXOffset = m_location.X - clickX;
+            m_relativeYOffset = m_location.Y - clickY;
         }
 
         /// <summary>
@@ -114,9 +112,9 @@ namespace SolitaireGame
         /// <param name="source">The CardZone where this selection was taken from.</param>
         public void SetSourceZone(CardZone source)
         {
-            this.sourceZone = source;
-            this.xSeparation = source.XSeparation;
-            this.ySeparation = source.YSeparation;
+            m_sourceZone = source;
+            m_xSeparation = source.XSeparation;
+            m_ySeparation = source.YSeparation;
         }
 
         /// <summary>
@@ -124,13 +122,12 @@ namespace SolitaireGame
         /// </summary>
         private void Reset()
         {
-            this.x = 0;
-            this.y = 0;
-            this.xSeparation = 0;
-            this.ySeparation = 0;
-            this.relativeXOffset = 0;
-            this.relativeYOffset = 0;
-            this.sourceZone = null;
+            m_location = new Point(0, 0);
+            m_xSeparation = 0;
+            m_ySeparation = 0;
+            m_relativeXOffset = 0;
+            m_relativeYOffset = 0;
+            m_sourceZone = null;
         }
 
         /// <summary>
@@ -138,12 +135,12 @@ namespace SolitaireGame
         /// </summary>
         public void ReturnToSource()
         {
-            if (!this.IsEmpty())
+            if (!IsEmpty())
             {
-                //this.MoveCardsToZone(this.Size(), this.sourceZone);
-                Tweener tween = new Tweener(this.game, this, this.sourceZone, this.Size());
-                this.game.AnimationAdd(tween);
-                this.Reset();
+                //MoveCardsToZone(Size(), sourceZone);
+                Tweener tween = new Tweener(m_game, this, m_sourceZone, Count());
+                m_game.AnimationAdd(tween);
+                Reset();
             }
         }
 
@@ -155,14 +152,13 @@ namespace SolitaireGame
         /// <param name="mouseY">Click y.</param>
         public void UpdatePosition(int mouseX, int mouseY)
         {
-            this.x = mouseX + this.relativeXOffset;
-            this.y = mouseY + this.relativeYOffset;
+            m_location = new Point(mouseX + m_relativeXOffset, mouseY + m_relativeYOffset);
 
-            for (int i = 0; i < this.Size(); i++)
+            for (int i = 0; i < Count(); i++)
             {
-                this.cards[i].X = this.x + (this.xSeparation * i);
-                this.cards[i].Y = this.y + (this.ySeparation * i);
+                m_cards[i].Location = new Point(m_location.X + (m_xSeparation * i), m_location.Y + (m_ySeparation * i));
             }
         }
+        #endregion
     }
 }

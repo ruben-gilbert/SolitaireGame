@@ -3,12 +3,9 @@
 // 2019
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 
 namespace SolitaireGame
 {
@@ -18,59 +15,40 @@ namespace SolitaireGame
     // TODO -- auto-winning game breaks if there is an empty foundation
     public class BackendGame
     {
-        private Deck deck;
-        private Discard discard;
-        private Selection selection;
-        private List<Foundation> foundations;
-        private List<Tableau> tableaus;
-        private List<CardZone> board;
-        private List<Tweener> animations;
-        private int score;
-        private MainGame mainGame;
-        private bool isWinnable;
+        #region Members
+        private Button m_button;
+        private Deck m_deck;
+        private Discard m_discard;
+        private List<Foundation> m_foundations;
+        private List<Tableau> m_tableaus;
+        private List<CardZone> m_board;
+        #endregion
 
-        private Button b;
+        #region Properties
+        public List<Tweener> Animations { get; private set; }
+
+        public MainGame Game { get; }
+
+        public bool IsWinnable { get; private set; }
+
+        public Selection Selection { get; private set; }
+        #endregion
 
         public BackendGame(MainGame game)
         {
-            this.mainGame = game;
-            this.NewGame();
+            Game = game;
+            NewGame();
         }
 
-        // -----------------------------------------------------------------------------------------
-        // Getters / Setters
-
-        public List<Tweener> Animations
-        {
-            get { return this.animations; }
-        }
-
-        public MainGame Game
-        {
-            get { return this.mainGame; }
-        }
-
-        public bool IsWinnable
-        {
-            get { return this.isWinnable; }
-        }
-
-        public Selection Selection
-        {
-            get { return this.selection; }
-        }
-
-        // -----------------------------------------------------------------------------------------
-        // Methods
-
+        #region Methods
         public void AnimationAdd(Tweener tween)
         {
-            this.animations.Add(tween);
+            Animations.Add(tween);
         }
 
         public void AnimationRemove(Tweener tween)
         {
-            this.animations.Remove(tween);
+            Animations.Remove(tween);
         }
 
         /// <summary>
@@ -79,19 +57,19 @@ namespace SolitaireGame
         /// <param name="c">The card to be played</param>
         private void AutoPlayCard(Card c)
         {
-            foreach (Foundation f in this.foundations)
+            foreach (Foundation f in m_foundations)
             {
                 // If the foundation is empty and we are trying to play an Ace OR the foundation
                 // is not empty and we are playing the next card that belongs in it, then succeed.
                 //if ((f.IsEmpty() && src.TopCard().Val == 1) ||
                 //    !f.IsEmpty() && src.TopCard().IsSameSuit(f.TopCard()) 
                 //    && src.TopCard().Val == f.TopCard().Val + 1)
-                if (f.IsEmpty() && c.Val == 1 ||
-                    !f.IsEmpty() && c.IsSameSuit(f.TopCard()) && c.Val == f.TopCard().Val + 1)
+                if (f.IsEmpty() && c.Value == 1 ||
+                    !f.IsEmpty() && c.IsSameSuit(f.TopCard()) && c.Value == f.TopCard().Value + 1)
                 {
                     //Tweener tween = new Tweener(this, src, f, 1);
                     Tweener tween = new Tweener(this, c.Source, f, 1);
-                    this.AnimationAdd(tween);
+                    AnimationAdd(tween);
 
                     return;
                 }
@@ -105,9 +83,9 @@ namespace SolitaireGame
         private bool CanAutoWin()
         {
             // Only bother checking the Tableus if there are no cards in deck or discard
-            if (this.deck.IsEmpty() && this.discard.IsEmpty())
+            if (m_deck.IsEmpty() && m_discard.IsEmpty())
             {
-                foreach (Tableau t in this.tableaus)
+                foreach (Tableau t in m_tableaus)
                 {
                     foreach (Card c in t.Cards)
                     {
@@ -133,19 +111,19 @@ namespace SolitaireGame
         /// <param name="s">The SpriteBatch object that will handle drawing.</param>
         public void Draw(SpriteBatch s)
         { 
-            foreach (CardZone cz in this.board)
+            foreach (CardZone cz in m_board)
             {
                 cz.Draw(s);
             }
 
             // Only draw the selection if there is something in it 
-            if (!this.selection.IsEmpty())
+            if (!Selection.IsEmpty())
             {
-                this.selection.Draw(s);
+                Selection.Draw(s);
             }
 
             // Draw anything that is currently animating
-            foreach (Tweener tween in this.animations)
+            foreach (Tweener tween in Animations)
             {
                 if (tween.Valid)
                 {
@@ -153,7 +131,29 @@ namespace SolitaireGame
                 }
             }
 
-            this.b.Draw(s);
+            m_button.Draw(s);
+        }
+
+        /// <summary>
+        /// Draws a line between two points.
+        /// </summary>
+        /// <param name="s">SpriteBatch for drawing</param>
+        /// <param name="start">The starting coordinate of the line</param>
+        /// <param name="end">The ending coordinate of the line</param>
+        /// <param name="thickness">How thick the line should be</param>
+        public void DrawLine(SpriteBatch s, Point start, Point end, int thickness)
+        {
+            Vector2 edge = end.ToVector2() - start.ToVector2();
+            float angle = (float)Math.Atan2(edge.Y, edge.X);
+
+            s.Draw(Game.BlankBox,
+                   new Rectangle(start.X, start.Y, (int)edge.Length(), thickness),
+                   null,
+                   Color.Black,
+                   angle,
+                   new Vector2(0, 0),
+                   SpriteEffects.None,
+                   0);
         }
 
         /// <summary>
@@ -162,8 +162,8 @@ namespace SolitaireGame
         /// <returns><c>true</c>, if all Foundations are full, <c>false</c> otherwise.</returns>
         public bool GameOver()
         {
-            foreach (Foundation f in this.foundations) {
-                if (f.Size() != 13)
+            foreach (Foundation f in m_foundations) {
+                if (f.Count() != 13)
                 {
                     return false;
                 }
@@ -180,14 +180,14 @@ namespace SolitaireGame
         public void HandleMouseDown(int x, int y)
         {
 
-            if (this.b.IsClicked(x, y))
+            if (m_button.IsClicked(x, y))
             {
-                this.b.OnPress();
+                m_button.OnPress();
                 return;
             }
 
             CardZone clicked = null;
-            foreach (CardZone zone in this.board)
+            foreach (CardZone zone in m_board)
             {
                 if (zone.IsClicked(x, y))
                 {
@@ -207,9 +207,9 @@ namespace SolitaireGame
                     int numToMove = clicked.GetClicked(x, y);
                     if (numToMove != -1)
                     {
-                        this.selection.SetSourceZone(clicked);
-                        this.selection.SetRelativeOffsets(numToMove, x, y);
-                        clicked.MoveCardsToZone(numToMove, this.selection);
+                        Selection.SetSourceZone(clicked);
+                        Selection.SetRelativeOffsets(numToMove, x, y);
+                        clicked.MoveCardsToZone(numToMove, Selection);
                     }
                 }
             }
@@ -222,59 +222,59 @@ namespace SolitaireGame
         /// <param name="y">The y coordinate of the click.</param>
         public void HandleMouseUp(int x, int y)
         {
-            if (this.b.IsClicked(x, y))
+            if (m_button.IsClicked(x, y))
             {
-                this.b.OnRelease();
+                m_button.OnRelease();
             }
-            else if (this.b.Pressed)
+            else if (m_button.Pressed)
             {
-                this.b.Pressed = false;
+                m_button.Pressed = false;
             }
 
             // If the selection isn't empty, it's valid and we should consider playing it
-            if (!this.selection.IsEmpty())
+            if (!Selection.IsEmpty())
             {
                 // Check if the move was played into one of the foundations
-                foreach (Foundation f in this.foundations)
+                foreach (Foundation f in m_foundations)
                 {
-                    if (f.IsDroppedOn(x, y) && this.selection.IsValidMove(f))
+                    if (f.IsDroppedOn(x, y) && Selection.IsValidMove(f))
                     {
-                        this.selection.CompleteMove(f);
+                        Selection.CompleteMove(f);
                         return;
                     }
                 }
 
                 // Check if the move was played into one of the tableaus
-                foreach (Tableau t in this.tableaus)
+                foreach (Tableau t in m_tableaus)
                 {
-                    if (t.IsDroppedOn(x, y) && this.selection.IsValidMove(t))
+                    if (t.IsDroppedOn(x, y) && Selection.IsValidMove(t))
                     {
-                        this.selection.CompleteMove(t);
+                        Selection.CompleteMove(t);
                         return;
                     }
                 }
 
                 // If invalid move, return Cards to source Zone
-                this.selection.ReturnToSource();
+                Selection.ReturnToSource();
             }
             else
             {
                 // If there's no selection to play, we only need to consider if the deck was clicked
-                if (this.deck.IsSelected())
+                if (m_deck.IsSelected)
                 {
-                    if (this.deck.IsClicked(x, y))
+                    if (m_deck.IsClicked(x, y))
                     {
-                        if (this.deck.IsEmpty())
+                        if (m_deck.IsEmpty())
                         {
-                            this.discard.MoveCardsToZone(this.discard.Size(), this.deck);
+                            m_discard.MoveCardsToZone(m_discard.Count(), m_deck);
                         }
                         else
                         {
-                            this.deck.MoveCardsToZone(GameProperties.DEAL_MODE, this.discard);
+                            m_deck.MoveCardsToZone(Properties.DealMode, m_discard);
                         }
                     }
 
-                    this.deck.Deselect();
+                    m_deck.Deselect();
                 }
             }
         }
@@ -285,27 +285,25 @@ namespace SolitaireGame
         public void HandleRightClick(int x, int y)
         {
             // If the game is winnable (and isn't already being auto-won), set it for completion
-            if (!this.isWinnable && this.CanAutoWin())
+            if (!IsWinnable && CanAutoWin())
             {
-                this.isWinnable = true;
+                IsWinnable = true;
             }
             // Otherwise, if there are no animations being processed, try to auto play a card
-            else if (this.animations.Count == 0)
+            else if (Animations.Count == 0)
             {
-                if (!this.discard.IsEmpty() &&
-                this.discard.TopCard().IsClicked(x, y, GameProperties.CARD_WIDTH,
-                                                 GameProperties.CARD_HEIGHT))
+                if (!m_discard.IsEmpty() &&
+                m_discard.TopCard().IsClicked(x, y, Card.Width, Card.Height))
                 {
-                    this.AutoPlayCard(this.discard.TopCard());
+                    AutoPlayCard(m_discard.TopCard());
                     return;
                 }
 
-                foreach (Tableau t in this.tableaus)
+                foreach (Tableau t in m_tableaus)
                 {
-                    if (!t.IsEmpty() && t.TopCard().IsClicked(x, y, GameProperties.CARD_WIDTH,
-                                                              GameProperties.CARD_HEIGHT))
+                    if (!t.IsEmpty() && t.TopCard().IsClicked(x, y, Card.Width, Card.Height))
                     {
-                        this.AutoPlayCard(t.TopCard());
+                        AutoPlayCard(t.TopCard());
                         return;
                     }
                 }
@@ -320,21 +318,21 @@ namespace SolitaireGame
         public Tuple<Tableau, Foundation> NextAutoWinStep()
         {
             // Find the foundation with the least cards
-            Foundation target = this.foundations[0];
-            for (int i = 1; i < this.foundations.Count; i++)
+            Foundation target = m_foundations[0];
+            for (int i = 1; i < m_foundations.Count; i++)
             {
-                if (this.foundations[i].Size() < target.Size())
+                if (m_foundations[i].Count() < target.Count())
                 {
-                    target = this.foundations[i];
+                    target = m_foundations[i];
                 }
             }
 
             // Search the Tableaus for the card that belongs on the smallest foundation
-            foreach (Tableau source in this.tableaus)
+            foreach (Tableau source in m_tableaus)
             {
                 if (!source.IsEmpty()
                     && source.TopCard().IsSameSuit(target.TopCard())
-                    && source.TopCard().Val == target.TopCard().Val + 1)
+                    && source.TopCard().Value == target.TopCard().Value + 1)
                 {
                     return new Tuple<Tableau, Foundation>(source, target);
                 }
@@ -350,11 +348,9 @@ namespace SolitaireGame
         public void NewGame()
         {
             // TODO add buttons and menus, etc?
-            this.b = new Button(this, 
-                                "New Game", 
-                                new Vector2(GameProperties.WINDOW_WIDTH / 2 - 100, 50));
-            this.b.SetAction(this.NewGame);
-            this.b.LoadFont("Button"); 
+            m_button = new Button(this, "New Game", new Point(Properties.WindowWidth / 2 - 100, 50));
+            m_button.SetAction(NewGame);
+            m_button.LoadFont("Button"); 
             
             // TODO make new font for buttons (smaller)
             // TODO add button popup when game is winnable?
@@ -364,60 +360,43 @@ namespace SolitaireGame
             // TODO card color drop down?
 
 
-            this.board = new List<CardZone>();
-            this.deck = new Deck(this,
-                                GameProperties.DECK_XCOR,
-                                GameProperties.DECK_YCOR,
-                                1,
-                                1);
-            this.deck.Shuffle();
-            this.board.Add(this.deck);
+            m_board = new List<CardZone>();
+            m_deck = new Deck(this, new Point(Deck.X, Deck.Y), 1, 1);
+            m_deck.Shuffle();
+            m_board.Add(m_deck);
 
-            this.discard = new Discard(this,
-                                GameProperties.DISCARD_XCOR,
-                                GameProperties.DISCARD_YCOR,
-                                GameProperties.DISCARD_SEPARATION,
-                                0);
-            this.board.Add(this.discard);
+            m_discard = new Discard(this, new Point(Discard.X, Discard.Y), Discard.Separation, 0);
+            m_board.Add(m_discard);
 
-            foundations = new List<Foundation>();
-            int foundX = GameProperties.WINDOW_WIDTH / 2;
-            int foundSpace = (foundX - (GameProperties.CARD_WIDTH * 4)) / 4;
+            m_foundations = new List<Foundation>();
+            int foundX = Properties.WindowWidth / 2;
+            int foundSpace = (foundX - (Card.Width * 4)) / 4;
             for (int i = 0; i < 4; i++)
             {
-                Foundation f = new Foundation(this,
-                                    foundX,
-                                    GameProperties.FOUNDATION_YCOR,
-                                    0,
-                                    0);
-                this.foundations.Add(f);
-                this.board.Add(f);
-                foundX += foundSpace + GameProperties.CARD_WIDTH;
+                Foundation f = new Foundation(this, new Point(foundX, Foundation.Y), 0, 0);
+                m_foundations.Add(f);
+                m_board.Add(f);
+                foundX += foundSpace + Card.Width;
             }
 
-            tableaus = new List<Tableau>();
+            m_tableaus = new List<Tableau>();
 
-            int tableSpace = (GameProperties.WINDOW_WIDTH - (GameProperties.CARD_WIDTH * 7)) / 8;
+            int tableSpace = (Properties.WindowWidth - (Card.Width * 7)) / 8;
             int tabX = tableSpace;
             for (int j = 1; j < 8; j++)
             {
-                Tableau t = new Tableau(this,
-                                    tabX,
-                                    GameProperties.TABLE_START,
-                                    0,
-                                    GameProperties.TABLE_CARD_SEPARATION);
-                this.deck.MoveCardsToZone(j, t);
-                this.tableaus.Add(t);
-                this.board.Add(t);
-                tabX += tableSpace + GameProperties.CARD_WIDTH;
+                Tableau t = new Tableau(this, new Point(tabX, Properties.TableStart), 0, Properties.TableCardSeparation);
+                m_deck.MoveCardsToZone(j, t);
+                m_tableaus.Add(t);
+                m_board.Add(t);
+                tabX += tableSpace + Card.Width;
             }
 
-            this.selection = new Selection(this, 0, 0, 0, 0);
+            Selection = new Selection(this, new Point(0, 0), 0, 0);
 
-            this.animations = new List<Tweener>();
+            Animations = new List<Tweener>();
 
-            this.score = 0;
-            this.isWinnable = false;
+            IsWinnable = false;
         }
 
         /// <summary>
@@ -428,8 +407,9 @@ namespace SolitaireGame
         /// <param name="y">The mouse's y coordinate.</param>
         public void UpdateSelection(int x, int y)
         {
-            this.selection.UpdatePosition(x, y);
+            Selection.UpdatePosition(x, y);
         }
+        #endregion
     }
 }
 

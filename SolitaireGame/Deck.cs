@@ -12,55 +12,69 @@ namespace SolitaireGame
 {
     public class Deck : CardZone
     {
+        #region Constants
+        public readonly static int X = 10;
+        public readonly static int Y = 10;
+        #endregion
 
-        private bool isSelected;
+        #region Members
+        private bool m_isSelected;
+        #endregion
+
+        #region Properties
+        public bool IsSelected
+        {
+            get => m_isSelected;
+            set => m_isSelected = value;
+        }
+        #endregion
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:SolitaireGame.Deck"/> class.
         /// </summary>
-        public Deck(BackendGame game, int x, int y, int xSep, int ySep) : 
-            base(game, x, y, xSep, ySep)
+        /// <param name="game">The game this object belongs to.</param>
+        /// <param name="location">The coordinates of this Zone.</param>
+        /// <param name="xSep">Horizontal separation of cards in this Zone.</param>
+        /// <param name="ySep">Vertical separation of cards in this Zone.</param>
+        public Deck(BackendGame game, Point location, int xSep, int ySep) : 
+            base(game, location, xSep, ySep)
         { 
 
-            foreach (string suit in GameProperties.VALID_SUITS_ARRAY)
+            foreach (Card.Suits suit in Enum.GetValues(typeof(Card.Suits)))
             {
                 List<Card> currentSuit = new List<Card>();
                 for (int i = 1; i < 14; i++)
                 {
                     Card c = new Card(i, suit);
-                    c.LoadImage(game.Game, GameProperties.CARD_COLOR);
+                    c.LoadImage(game.Game, Properties.CardColor);
                     currentSuit.Add(c);
                 }
 
-                this.AddCards(currentSuit);
+                AddCards(currentSuit);
             }
 
-            this.isSelected = false;
+            m_isSelected = false;
         }
 
+        #region Methods
         /// <summary>
         /// Draws this Deck.</summary>
         /// <param name="s">A SpriteBatch object used for drawing in MonoGame.</param>
         public override void Draw(SpriteBatch s)
         {
             // If no cards, draw a black box
-            if (this.IsEmpty())
+            if (IsEmpty())
             {
                 int lineWidth = 2;
                 
-                this.DrawEmptyZone(this.blankBox, s, lineWidth, Color.Black);
-                this.DrawLine(s, 
-                              new Vector2(this.x, this.y), 
-                              new Vector2(this.x + this.width, this.y + this.height),
-                              lineWidth);
-                this.DrawLine(s, 
-                              new Vector2(this.x, this.y + this.height), 
-                              new Vector2(this.x + this.width, this.y),
-                              lineWidth);
+                DrawEmptyZone(m_game.Game.BlankBox, s, lineWidth, Color.Black);
+                m_game.DrawLine(s, Location, Size.ToPoint(), lineWidth);
+                m_game.DrawLine(s, new Point(Location.X, Location.Y + Size.ToPoint().Y), 
+                    new Point(Location.X + Size.ToPoint().X, Location.Y), lineWidth);
             }
             else
             {
-                foreach (Card card in this.cards)
+                foreach (Card card in m_cards)
                 {
                     card.Draw(s, Color.White);
                 }
@@ -68,37 +82,11 @@ namespace SolitaireGame
         }
 
         /// <summary>
-        /// Draws a line between two points.
-        /// </summary>
-        /// <param name="s">SpriteBatch for drawing</param>
-        /// <param name="start">The starting coordinates of the line</param>
-        /// <param name="end">The ending coordinates of the line</param>
-        /// <param name="lineWidth">How thick the line should be</param>
-        private void DrawLine(SpriteBatch s, Vector2 start, Vector2 end, int lineWidth)
-        {
-            Vector2 edge = end - start;
-            float angle = (float)Math.Atan2(edge.Y, edge.X);
-
-            s.Draw(this.blankBox, 
-                   new Rectangle(
-                       (int)start.X + (lineWidth / 2), 
-                       (int)start.Y + (lineWidth / 2), 
-                       (int)edge.Length(), 
-                       lineWidth),
-                   null,
-                   Color.Black,
-                   angle,
-                   new Vector2(0, 0),
-                   SpriteEffects.None,
-                   0);
-        }
-
-        /// <summary>
         /// Deselect this instance.
         /// </summary>
         public void Deselect()
         {
-            this.isSelected = false;
+            m_isSelected = false;
         }
 
         /// <summary>
@@ -109,19 +97,9 @@ namespace SolitaireGame
         /// <param name="y">The y coordinate of the click</param>
         public override bool IsClicked(int x, int y)
         {
-            return ((this.x <= x && x <= this.x + this.width) 
-                   && (this.y <= y && y <= this.y + this.height))
-                   || 
-                   (!this.IsEmpty() && this.cards[this.Size() - 1].IsClicked(x, y, 0, 0));
-        }
-
-        /// <summary>
-        /// Checks if this Deck is selected.
-        /// </summary>
-        /// <returns><c>true</c>, if selected, <c>false</c> otherwise.</returns>
-        public bool IsSelected()
-        {
-            return this.isSelected;
+            return ((Location.X <= x && x <= Location.X + Size.ToPoint().X) 
+                   && (Location.Y <= y && y <= Location.Y + Size.ToPoint().Y))
+                   || (!IsEmpty() && m_cards[Count() - 1].IsClicked(x, y, 0, 0));
         }
 
         /// <summary>
@@ -134,21 +112,21 @@ namespace SolitaireGame
             Debug.Assert(dst is Discard || dst is Tableau);
 
             // Nothing to do if deck is empty
-            if (this.IsEmpty())
+            if (IsEmpty())
             {
                 return;
             }
 
             // If we have less cards than we are being asked for, give them all we have
-            if (this.Size() < num)
+            if (Count() < num)
             {
-                num = this.Size();
+                num = Count();
             }
 
-            List<Card> c = this.RemoveCards(num);
+            List<Card> removed = RemoveCards(num);
 
             // Face cards the proper direction and nest all of them
-            foreach (Card card in c)
+            foreach (Card card in removed)
             {
                 if (dst is Discard)
                 {
@@ -163,15 +141,15 @@ namespace SolitaireGame
             }
 
             // Unnest the last card
-            c[c.Count - 1].UnNest();
+            removed[removed.Count - 1].UnNest();
 
             // Flip the last card of a tableau
             if (dst is Tableau)
             {
-                c[c.Count - 1].Flip();
+                removed[removed.Count - 1].Flip();
             }
 
-            dst.AddCards(c);
+            dst.AddCards(removed);
         }
 
         /// <summary>
@@ -184,9 +162,9 @@ namespace SolitaireGame
         {
             List<Card> baseRemoved = base.RemoveCards(num, fromFront);
 
-            if (!this.IsEmpty())
+            if (!IsEmpty())
             {
-                this.RealignCards(this.Size());
+                RealignCards(Count());
             }
 
             return baseRemoved;
@@ -197,7 +175,7 @@ namespace SolitaireGame
         /// </summary>
         public void Select()
         {
-            this.isSelected = true;
+            m_isSelected = true;
         }
 
         /// <summary>
@@ -208,19 +186,21 @@ namespace SolitaireGame
             for (int i = 0; i < 3; i++)
             {
                 Random random = new Random();
-                int n = this.Size() - 1;
+                int n = Count() - 1;
 
                 while (n > 1)
                 {
                     int choice = random.Next(n);
-                    Card temp = this.cards[choice];
-                    this.cards[choice] = this.cards[n];
-                    this.cards[n] = temp;
+                    Card temp = m_cards[choice];
+                    m_cards[choice] = m_cards[n];
+                    m_cards[n] = temp;
                     n--;
                 }
             }
 
-            this.RealignCards(this.Size());
+            RealignCards(Count());
         }
+
+        #endregion
     }
 }

@@ -5,166 +5,116 @@
 using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 
 namespace SolitaireGame
 { 
     public class Card
     {
-        private int x;
-        private int y;
-        private int height;
-        private int width;
-        private readonly string suit;
-        private readonly int val;
-        private bool isUp;
-        private bool isNested;
-        private Texture2D front;
-        private Texture2D back;
-        private CardZone source;
+        #region Constants
+        public readonly static int Width = 131;
+        public readonly static int Height = 200;
+        #endregion
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="T:SolitaireGame.Card"/> class.
-        /// </summary>
-        /// <param name="val">The Card's value.</param>
-        /// <param name="suit">The Card's suit.</param>
-        public Card(int val, string suit)
+        #region Enums
+        [Flags]
+        public enum Suits
         {
-            this.isUp = false;
-            this.isNested = true;
-            this.width = GameProperties.CARD_WIDTH;
-            this.height = GameProperties.CARD_HEIGHT;
+            Diamonds = 1 << 0,
+            Hearts = 1 << 1,
+            Clubs = 1 << 2,
+            Spades = 1 << 3
+        };
+        #endregion
 
-            if (!GameProperties.VALID_SUITS.Contains(suit))
-                throw new ArgumentException(String.Format("{0} is not a valid suit", "suit"));
-            else
-                this.suit = suit;
-
-            if (val < 1 || val > 13)
-                throw new ArgumentException(String.Format("{0} is not a valid card val", "val"));
-            else
-                this.val = val;
-        }
-
-        // -----------------------------------------------------------------------------------------
-        // Getters / Setters
-
+        #region Properties
         /// <summary>
         /// Gets the Texture of the back of this Card.
         /// </summary>
         /// <value>The back Texture.</value>
-        public Texture2D Back
-        {
-            get { return this.back; }
-        }
+        public Texture2D Back { get; private set; }
 
         /// <summary>
         /// Gets the Texture of the front of this Card.
         /// </summary>
         /// <value>The front Texture</value>
-        public Texture2D Front
-        {
-            get { return this.front; }
-        }
-
-        /// <summary>
-        /// Gets or sets the height of this Card.
-        /// </summary>
-        /// <value>The new height value.</value>
-        public int Height
-        {
-            get { return this.height; }
-            set { this.height = value; }
-        }
+        public Texture2D Front { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether this <see cref="T:SolitaireGame.Card"/> is nested.
         /// </summary>
         /// <value><c>true</c> if the card is nested; otherwise, <c>false</c>.</value>
-        public bool IsNested
-        {
-            get { return this.isNested; }
-        }
+        public bool IsNested { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether this <see cref="T:SolitaireGame.Card"/> is up.
         /// </summary>
         /// <value><c>true</c> if up; otherwise, <c>false</c>.</value>
-        public bool IsUp
-        {
-            get { return this.isUp; }
-        }
+        public bool IsUp { get; private set; }
 
-        public CardZone Source
-        {
-            get { return this.source; }
-            set { this.source = value; }
-        }
+        /// <summary>
+        /// The coordinates of the top-left corner of the card.
+        /// </summary>
+        public Point Location { get; set; }
+
+        /// <summary>
+        /// The width and height of the card.
+        /// </summary>
+        public Vector2 Size { get; private set; }
+
+        /// <summary>
+        /// The CardZone where this card lives.
+        /// </summary>
+        public CardZone Source { get; set; }
 
         /// <summary>
         /// Gets the suit of this Card.
         /// </summary>
         /// <value>NULL</value>
-        public string Suit
-        {
-            get { return this.suit; }
-        }
+        public Suits Suit { get; }
 
         /// <summary>
         /// Gets the value of this Card.
         /// </summary>
         /// <value>NULL</value>
-        public int Val
-        {
-            get { return this.val; }
-        }
+        public int Value { get; }
+        #endregion
 
         /// <summary>
-        /// Gets or sets the width of this card.
+        /// Initializes a new instance of the <see cref="T:SolitaireGame.Card"/> class.
         /// </summary>
-        /// <value>The new width value.</value>
-        public int Width
+        /// <param name="value">The Card's value.</param>
+        /// <param name="suit">The Card's suit.</param>
+        public Card(int value, Suits suit)
         {
-            get { return this.width; }
-            set { this.width = value; }
+            IsUp = false;
+            IsNested = true;
+            Size = new Vector2(Width, Height);
+
+            if (!Enum.IsDefined(typeof(Suits), suit))
+                throw new ArgumentException(String.Format("{0} is not a valid suit", suit));
+            else
+                Suit = suit;
+
+            if (value < 1 || value > 13)
+                throw new ArgumentException(String.Format("{0} is not a valid card val", value));
+            else
+                Value = value;
         }
 
-        /// <summary>
-        /// Gets or sets the x coordinate of this Card.
-        /// </summary>
-        /// <value>The new x value</value>
-        public int X
-        {
-            get { return this.x; }
-            set { this.x = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the y coordinate of this Card.
-        /// </summary>
-        /// <value>The new y value</value>
-        public int Y
-        {
-            get { return this.y; }
-            set { this.y = value; }
-        }
-
-        // -----------------------------------------------------------------------------------------
-        // Methods
-
+        #region Methods
         /// <summary>
         /// Card objects draw themselves
         /// </summary>
         /// <param name="s">SpriteBatch can draw 2D textures</param>
-        /// <param name="c">Color of the texture (will generally be White)</param>
-        public void Draw(SpriteBatch s, Color c)
+        /// <param name="color">Color of the texture (will generally be White)</param>
+        public void Draw(SpriteBatch s, Color color)
         {
-            Rectangle r = new Rectangle(this.x, this.y, this.width, this.height);
+            Rectangle rectangle = new Rectangle(Location, Size.ToPoint());
 
-            if (this.isUp)
-                s.Draw(this.front, r, c);
+            if (IsUp)
+                s.Draw(Front, rectangle, color);
             else
-                s.Draw(this.back, r, c);
+                s.Draw(Back, rectangle, color);
         }
 
         /// <summary>
@@ -172,7 +122,7 @@ namespace SolitaireGame
         /// </summary>
         public void Flip()
         {
-            this.isUp = !this.isUp;
+            IsUp = !IsUp;
         }
 
         /// <summary>
@@ -186,15 +136,15 @@ namespace SolitaireGame
         public bool IsClicked(int clickX, int clickY, int xSep, int ySep)
         {
             // If the card is nested, only allow a subsection of it to be clicked
-            if (this.IsNested)
+            if (IsNested)
             {
-                return (this.x <= clickX && clickX <= this.x + xSep)
-                    && (this.y <= clickY && clickY <= this.y + ySep);
+                return (Location.X <= clickX && clickX <= Location.X + xSep)
+                    && (Location.Y <= clickY && clickY <= Location.Y + ySep);
             }
             else
             {
-                return (this.x <= clickX && clickX <= this.x + this.width)
-                    && (this.y <= clickY && clickY <= this.y + this.height);
+                return (Location.X <= clickX && clickX <= Location.X + Size.X)
+                    && (Location.Y <= clickY && clickY <= Location.Y + Size.Y);
             }
         }
 
@@ -205,14 +155,19 @@ namespace SolitaireGame
         /// <param name="other">Some other Card object</param>
         public bool IsOppositeSuit(Card other)
         {
-            if (this.suit.Equals("H") || this.suit.Equals("D"))
+            /*
+            if (Suit.Equals(Suits.Hearts) || Suit.Equals(Suits.Diamonds))
             {
-                return other.Suit.Equals("S") || other.Suit.Equals("C");
+                return other.Suit.Equals(Suits.Spades) || other.Suit.Equals(Suits.Clubs);
             }
             else
             {
-                return other.Suit.Equals("H") || other.Suit.Equals("D");
+                return other.Suit.Equals(Suits.Hearts) || other.Suit.Equals(Suits.Diamonds);
             }
+            */
+
+            return Suit.Equals(Suits.Diamonds | Suits.Hearts) ?
+                other.Suit.Equals(Suits.Clubs | Suits.Spades) : other.Suit.Equals(Suits.Diamonds | Suits.Hearts);
         }
 
         /// <summary>
@@ -221,13 +176,8 @@ namespace SolitaireGame
         /// <param name="other">Some other Card object</param>
         /// <returns>true if the suits are the same, false otherwise</returns>
         public bool IsSameSuit(Card other)
-        {
-            if (other != null)
-            {
-                return this.suit.Equals(other.Suit);
-            }
-
-            return false;
+        { 
+            return other != null ? Suit.Equals(other.Suit) : false;
         }
 
         /// <summary>
@@ -240,8 +190,8 @@ namespace SolitaireGame
         /// <param name="color">The color of the card-back</param>
         public void LoadImage(MainGame game, string color)
         {
-            this.front = game.Content.Load<Texture2D>("images/" + this.ToString());
-            this.back = game.Content.Load<Texture2D>("images/back_" + color);
+            Front = game.Content.Load<Texture2D>("images/" + ToString());
+            Back = game.Content.Load<Texture2D>("images/back_" + color);
         }
 
         /// <summary>
@@ -249,7 +199,7 @@ namespace SolitaireGame
         /// </summary>
         public void MakeFaceDown()
         {
-            this.isUp = false;
+            IsUp = false;
         }
 
         /// <summary>
@@ -257,7 +207,7 @@ namespace SolitaireGame
         /// </summary>
         public void MakeFaceUp()
         {
-            this.isUp = true;
+            IsUp = true;
         }
 
         /// <summary>
@@ -265,7 +215,7 @@ namespace SolitaireGame
         /// </summary>
         public void Nest()
         {
-            this.isNested = true;
+            IsNested = true;
         }
 
         /// <summary>
@@ -274,19 +224,29 @@ namespace SolitaireGame
         /// <returns>A string of the Card's value and suit</returns>
         public override string ToString()
         {
-            switch (this.val)
+            string shortSuit = Suit.ToString().Substring(0, 1);
+            string valueString;
+
+            switch (Value)
             {
                 case 1:
-                    return "A" + this.suit;
+                    valueString = "A";
+                    break;
                 case 11:
-                    return "J" + this.suit;
+                    valueString = "J";
+                    break;
                 case 12:
-                    return "Q" + this.suit;
+                    valueString = "Q";
+                    break;
                 case 13:
-                    return "K" + this.suit;
+                    valueString = "K";
+                    break;
                 default:
-                    return this.val + this.suit;
+                    valueString = Value.ToString();
+                    break;
             }
+
+            return valueString + shortSuit;
         }
 
         /// <summary>
@@ -294,7 +254,8 @@ namespace SolitaireGame
         /// </summary>
         public void UnNest()
         {
-            this.isNested = false;
+            IsNested = false;
         }
+        #endregion
     }
 }

@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace SolitaireGame
 {
@@ -12,23 +9,23 @@ namespace SolitaireGame
         /// Initializes a new instance of the <see cref="T:SolitaireGame.Tableau"/> class.
         /// </summary>
         /// <param name="game">The BackendGame this Zone belongs to.</param>
-        /// <param name="x">The x coordinate of this Zone.</param>
-        /// <param name="y">The y coordinate of this Zone.</param>
+        /// <param name="location">The coordinates of this Zone.</param>
         /// <param name="xSep">Horizontal separation of cards in this Zone.</param>
         /// <param name="ySep">Horizontal separation of cards in this Zone.</param>
-        public Tableau(BackendGame game, int x, int y, int xSep, int ySep) :
-            base(game, x, y, xSep, ySep)
+        public Tableau(BackendGame game, Point location, int xSep, int ySep) :
+            base(game, location, xSep, ySep)
         {
         }
 
+        #region Methods
         /// <summary>
         /// Adds cards to this Zone by using the base class method.  Also adjusts the
         /// height/y-separation of cards if the stack gets too large for the window.
         /// </summary>
-        /// <param name="c">C.</param>
-        public override void AddCards(List<Card> c)
+        /// <param name="cards">C.</param>
+        public override void AddCards(List<Card> cards)
         {
-            base.AddCards(c);
+            base.AddCards(cards);
             // TODO update the y-separation of this Tableau if it exceeds bounds of the window?
         }
 
@@ -37,9 +34,9 @@ namespace SolitaireGame
         /// </summary>
         public void Cleanup()
         {
-            if (!this.IsEmpty() && !this.TopCard().IsUp)
+            if (!IsEmpty() && !TopCard().IsUp)
             {
-                this.TopCard().Flip();
+                TopCard().Flip();
             }
         }
 
@@ -51,13 +48,13 @@ namespace SolitaireGame
         /// <param name="y">The y coordinate of the click.</param>
         public override int GetClicked(int x, int y)
         {
-            for (int i = 0; i < this.Size(); i++)
+            for (int i = 0; i < Count(); i++)
             {
-                if (this.cards[i].IsClicked(x, y, this.width, this.ySeparation))
+                if (m_cards[i].IsClicked(x, y, m_size.ToPoint().X, m_ySeparation))
                 {
-                    if (this.cards[i].IsUp)
+                    if (m_cards[i].IsUp)
                     {
-                        return this.Size() - i;
+                        return Count() - i;
                     }
                     else
                     {
@@ -70,5 +67,6 @@ namespace SolitaireGame
             // Return -1 on failure
             return -1;
         }
+        #endregion
     }
 }

@@ -1,13 +1,9 @@
 ﻿// MainGame.cs
-// Adapted from Monogame default
 // Author: Ruben Gilbert
 // 2019
 
 using System;
-using System.IO;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -20,18 +16,34 @@ namespace SolitaireGame
     /// </summary>
     public class MainGame : Game
     {
-        GraphicsDeviceManager graphics;
-        SpriteBatch spriteBatch;
-        BackendGame backendGame;
-        private MouseState curState;
-        private MouseState oldState;
-        private bool gameOver;
-        private string endTime;
-        private bool writtenToFile;
+        #region Members
+        BackendGame m_backendGame;
+
+        private bool m_gameOver;
+        private bool m_isWrittenToFile;
+
+        GraphicsDeviceManager m_graphics;
         
+        private MouseState m_currentState;
+        private MouseState m_oldState;
+
+        SpriteBatch m_spriteBatch;
+
+        private string m_endTime;
+
+        private Texture2D m_blankBox;
+        #endregion
+
+        #region Properties
+        public Texture2D BlankBox
+        {
+            get => m_blankBox;
+        }
+        #endregion
+
         public MainGame()
         {
-            graphics = new GraphicsDeviceManager(this);
+            m_graphics = new GraphicsDeviceManager(this);
 
             //GameProperties.WINDOW_WIDTH = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
             //GameProperties.WINDOW_HEIGHT = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
@@ -39,8 +51,8 @@ namespace SolitaireGame
             int monitorWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
             int monitorHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
 
-            GameProperties.WINDOW_WIDTH = monitorWidth > 1600 ? 1600 : monitorWidth;
-            GameProperties.WINDOW_HEIGHT = monitorHeight > 900 ? 900 : monitorHeight;
+            Properties.WindowWidth = monitorWidth > 1600 ? 1600 : monitorWidth;
+            Properties.WindowHeight = monitorHeight > 900 ? 900 : monitorHeight;
 
             // TODO make card sizes dynamic based on window size?
             // TODO make window size dynamic based on height of screen
@@ -71,11 +83,11 @@ namespace SolitaireGame
             }
             */
 
-            GameProperties.TABLE_START = GameProperties.WINDOW_HEIGHT / 3;
+            Properties.TableStart = Properties.WindowHeight / 3;
 
-            graphics.PreferredBackBufferWidth = GameProperties.WINDOW_WIDTH;
-            graphics.PreferredBackBufferHeight = GameProperties.WINDOW_HEIGHT;
-            graphics.ApplyChanges();
+            m_graphics.PreferredBackBufferWidth = Properties.WindowWidth;
+            m_graphics.PreferredBackBufferHeight = Properties.WindowHeight;
+            m_graphics.ApplyChanges();
 
             Content.RootDirectory = "Content";
         }
@@ -87,12 +99,12 @@ namespace SolitaireGame
         protected override void Initialize()
         {
 
-            this.backendGame = new BackendGame(this);
-            this.IsMouseVisible = true;
-            this.curState = Mouse.GetState();
-            this.oldState = Mouse.GetState();
-            this.gameOver = false;
-            this.writtenToFile = false;
+            m_backendGame = new BackendGame(this);
+            IsMouseVisible = true;
+            m_currentState = Mouse.GetState();
+            m_oldState = Mouse.GetState();
+            m_gameOver = false;
+            m_isWrittenToFile = false;
 
             base.Initialize();
         }
@@ -103,7 +115,10 @@ namespace SolitaireGame
         protected override void LoadContent()
         {
             // Create a new SpriteBatch, which can be used to draw textures.
-            this.spriteBatch = new SpriteBatch(GraphicsDevice);
+            m_spriteBatch = new SpriteBatch(GraphicsDevice);
+
+            m_blankBox = new Texture2D(GraphicsDevice, 1, 1);
+            m_blankBox.SetData(new[] { Color.White });
 
             // Create the SpriteFont object
             //SpriteFont victoryFont = Content.Load<SpriteFont>("Victory");
@@ -136,11 +151,11 @@ namespace SolitaireGame
             }
 
             // Check to see if we have any animations that need to be updated
-            if (this.backendGame.Animations.Count != 0)
+            if (m_backendGame.Animations.Count != 0)
             {
                 List<Tweener> toRemove = new List<Tweener>();
 
-                foreach (Tweener tween in this.backendGame.Animations)
+                foreach (Tweener tween in m_backendGame.Animations)
                 {
                     if (tween.Valid)
                     {
@@ -156,53 +171,53 @@ namespace SolitaireGame
                 {
                     foreach (Tweener tween in toRemove)
                     {
-                        this.backendGame.AnimationRemove(tween);
+                        m_backendGame.AnimationRemove(tween);
                     }
                 }
             }
 
             // Main game check -- if game is not over or being auto-won, continue to allow playing.
-            if (!this.backendGame.IsWinnable && !this.backendGame.GameOver())
+            if (!m_backendGame.IsWinnable && !m_backendGame.GameOver())
             {
-                this.curState = Mouse.GetState();
+                m_currentState = Mouse.GetState();
 
                 // If there is a valid selection, make sure we update its location
-                if (!this.backendGame.Selection.IsEmpty())
+                if (!m_backendGame.Selection.IsEmpty())
                 {
-                    this.backendGame.UpdateSelection(this.curState.X, this.curState.Y);
+                    m_backendGame.UpdateSelection(m_currentState.X, m_currentState.Y);
                 }
 
                 // If the left-mouse button is pushed down, prepare for a click 
-                if (this.curState.LeftButton == ButtonState.Pressed &&
-                    this.oldState.LeftButton == ButtonState.Released)
+                if (m_currentState.LeftButton == ButtonState.Pressed &&
+                    m_oldState.LeftButton == ButtonState.Released)
                 {
-                    this.backendGame.HandleMouseDown(this.curState.X, this.curState.Y);
+                    m_backendGame.HandleMouseDown(m_currentState.X, m_currentState.Y);
                 }
                 // If the left mouse button is released, handle it
-                else if (this.curState.LeftButton == ButtonState.Released &&
-                    this.oldState.LeftButton == ButtonState.Pressed)
+                else if (m_currentState.LeftButton == ButtonState.Released &&
+                    m_oldState.LeftButton == ButtonState.Pressed)
                 {
-                    this.backendGame.HandleMouseUp(this.curState.X, this.curState.Y);
+                    m_backendGame.HandleMouseUp(m_currentState.X, m_currentState.Y);
                 }
                 // If the right mouse button is pressed AND the left mouse button isn't down
-                else if (this.curState.RightButton == ButtonState.Pressed &&
-                        this.oldState.RightButton == ButtonState.Released &&
-                        this.curState.LeftButton != ButtonState.Pressed)
+                else if (m_currentState.RightButton == ButtonState.Pressed &&
+                        m_oldState.RightButton == ButtonState.Released &&
+                        m_currentState.LeftButton != ButtonState.Pressed)
                 {
-                    this.backendGame.HandleRightClick(this.curState.X, this.curState.Y);
+                    m_backendGame.HandleRightClick(m_currentState.X, m_currentState.Y);
                 }
 
-                this.oldState = curState;
+                m_oldState = m_currentState;
             }
-            else if (this.backendGame.IsWinnable && !this.backendGame.GameOver())
+            else if (m_backendGame.IsWinnable && !m_backendGame.GameOver())
             {
                 // If we are able to auto-win and there are no cards currently being processed
                 // for winning, grad another card and start it animating
-                if (this.backendGame.Animations.Count == 0)
+                if (m_backendGame.Animations.Count == 0)
                 {
-                    Tuple<Tableau, Foundation> step = this.backendGame.NextAutoWinStep();
-                    Tweener tween = new Tweener(this.backendGame, step.Item1, step.Item2, 1);
-                    this.backendGame.AnimationAdd(tween);
+                    Tuple<Tableau, Foundation> step = m_backendGame.NextAutoWinStep();
+                    Tweener tween = new Tweener(m_backendGame, step.Item1, step.Item2, 1);
+                    m_backendGame.AnimationAdd(tween);
                 }
             }
             else
@@ -221,30 +236,30 @@ namespace SolitaireGame
         {
             GraphicsDevice.Clear(Color.ForestGreen);
 
-            spriteBatch.Begin();
-            this.backendGame.Draw(this.spriteBatch);
+            m_spriteBatch.Begin();
+            m_backendGame.Draw(m_spriteBatch);
 
             /*
-            if (this.gameOver)
+            if (gameOver)
             {
                 Vector2 vSize = font.MeasureString("VICTORY!");
-                Vector2 sSize = font.MeasureString("Final Score: " + this.backendGame.GetScore());
+                Vector2 sSize = font.MeasureString("Final Score: " + m_backendGame.GetScore());
                 int x = GameProperties.WINDOW_WIDTH / 2;
                 int y = GameProperties.WINDOW_HEIGHT / 2;
 
-                this.spriteBatch.DrawString(font, 
+                spriteBatch.DrawString(font, 
                     "VICTORY!", 
                     new Vector2(x - (vSize.X / 2), y), 
                     Color.Black);
-                this.spriteBatch.DrawString(font,
-                    "Final Score: " + this.backendGame.GetScore(),
+                spriteBatch.DrawString(font,
+                    "Final Score: " + m_backendGame.GetScore(),
                     new Vector2(x - (sSize.X / 2), y + vSize.Y),
                     Color.Black);
 
                 // TODO display the top scores from the file after winning a game?  Or menu option?
             }
             */
-            spriteBatch.End();
+            m_spriteBatch.End();
 
             base.Draw(gameTime);
         }
@@ -257,25 +272,25 @@ namespace SolitaireGame
             /*
             // If the current game is won AND we haven't written to the file yet, check if 
             // we should write the score to the high score file
-            if (!this.writtenToFile && this.gameOver)
+            if (!writtenToFile && gameOver)
             {
-                this.WriteScoreToFile();
+                WriteScoreToFile();
             }
             */
 
-            this.backendGame.NewGame();
-            this.gameOver = false;
-            this.writtenToFile = false;
+            m_backendGame.NewGame();
+            m_gameOver = false;
+            m_isWrittenToFile = false;
 
             /*
             // Load the image textures for each Card
-            foreach (Card c in this.backendGame.GetDeck().GetCards())
+            foreach (Card c in m_backendGame.GetDeck().GetCards())
             {
                 c.LoadImages(this, GameProperties.CARD_COLOR);
             }
 
             // Build the board now that textures have been loaded
-            this.backendGame.BuildBoard();
+            m_backendGame.BuildBoard();
             */
         }
 
@@ -313,7 +328,7 @@ namespace SolitaireGame
             }
 
             // Add the current score to the list of high scores and sort them (and reverse order)
-            scores.Add(new HighScore(this.backendGame.GetScore(), this.endTime));
+            scores.Add(new HighScore(m_backendGame.GetScore(), endTime));
             scores.Sort();
             scores.Reverse();
 
@@ -326,7 +341,7 @@ namespace SolitaireGame
             File.WriteAllLines(path, 
                 Array.ConvertAll<HighScore, string>(scores.ToArray(), HighScore.ConvertHighScoreToString));
 
-            this.writtenToFile = true;
+            writtenToFile = true;
 
         }
         */
@@ -336,9 +351,9 @@ namespace SolitaireGame
             /*
             // If the current game is won AND we haven't written to the file yet, check if 
             // we should write the score to the high score file before exiting
-            if (!this.writtenToFile && this.gameOver)
+            if (!writtenToFile && gameOver)
             {
-                this.WriteScoreToFile();
+                WriteScoreToFile();
             }
             */
 
