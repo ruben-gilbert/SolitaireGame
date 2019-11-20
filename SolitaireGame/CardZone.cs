@@ -220,7 +220,7 @@ namespace SolitaireGame
             if (IsEmpty())
             {
                 return Location.X <= x && x <= Location.X + Size.ToPoint().X
-                       && y <= Location.Y && y <= Location.Y + Size.ToPoint().Y;
+                       && Location.Y <= y && y <= Location.Y + Size.ToPoint().Y;
             }
             else
             {

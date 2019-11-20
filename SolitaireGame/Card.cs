@@ -154,7 +154,6 @@ namespace SolitaireGame
         /// <param name="other">Some other Card object</param>
         public bool IsOppositeSuit(Card other)
         {
-            /*
             if (Suit.Equals(Suits.Hearts) || Suit.Equals(Suits.Diamonds))
             {
                 return other.Suit.Equals(Suits.Spades) || other.Suit.Equals(Suits.Clubs);
@@ -163,12 +162,6 @@ namespace SolitaireGame
             {
                 return other.Suit.Equals(Suits.Hearts) || other.Suit.Equals(Suits.Diamonds);
             }
-            */
-
-            // TODO -- kings can't be played on empty spots
-
-            return !Suit.HasFlag(Suits.Diamonds | Suits.Hearts) ?
-                !other.Suit.HasFlag(Suits.Clubs | Suits.Spades) : !other.Suit.HasFlag(Suits.Diamonds | Suits.Hearts);
         }
 
         /// <summary>
